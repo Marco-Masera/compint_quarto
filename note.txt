@@ -1,0 +1,21 @@
+Agente
+
+>Basato su MinMax
+>Utilizzo di Reward_Ext 
+>Diverse politiche possibili:
+    -Quanti nodi esploro ogni volta? Quanti ne scarto?
+        -Compromesso tra profondità e larghezza
+    -Posso decidere di bloccare l'esplorazione di certi nodi a una certa profondità e di continuare con altri?
+        -Es X nodi per ogni livello - possono discendere tutti anche dallo stesso nodo
+    ->GA (?)
+
+    -Quali politiche fino al nodo  5? ->Non posso usare reward
+        ->Sequenze di mosse casuali stile montecarlo search: pericoloso - avversario potrebbe trarne vantaggio
+        ->MinMax completo fino a livello 5? Forse troppo lento
+        ->Learning:
+            -Policies 
+                ->Definire regole tra cui scegliere
+                    -Minimizzare n righe attive
+                    -Massimizzare n righe attive 
+                    -Minimizzare 
+            -Cache di mosse "buone"?
