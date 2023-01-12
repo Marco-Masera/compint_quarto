@@ -34,6 +34,43 @@ LINES_PRECEDING[len(LINES_PRECEDING)-1] = count_
 MULTILINE_BLOCK = ((LINES_PRECEDING[len(LINES_PRECEDING)-1] * 6) + 80)
 
 
+class FixedRules():
+    def get_lines(state):
+        mylines = np.array([(False, 0,0) for _ in range(16)]) #(Active, N_Pawns, N_Features)
+        for index,line in enumerate(LINES):
+            count = 0; acc = 15; last = None
+            for box in line[0]:
+                if (state[0][box]!=-1):
+                    count += 1
+                    if (last != None):
+                        acc = acc & (~(state[0][box] ^ last))
+                    last = state[0][box]
+            
+            if (acc == 0 or count==0):
+                mylines[index] = (False, 0, 0)
+            else:
+                for bit in str(bin(acc)):
+                    if (bit=='1'): n_ones+=1
+                mylines[index] = (True, count, n_ones)
+
+    def min_active_lines(state):
+        #Higher score if fewer active lines
+        lines = FixedRules.get_lines(state)
+        return 15 - len([ l for l in lines if l[0]==False ])
+    def max_active_lines(state):
+        #Higher score if more active lines
+        lines = FixedRules.get_lines(state)
+        return len([ l for l in lines if l[0]==False ])
+    def min_n_pawns_biggest_line(state):
+        #Higher score if line with max number of pawns have fewer
+        line = max(FixedRules.get_lines(state), key=lambda x: x[1])
+        return 4 - line[1]
+    def min_common_features(state):
+        #Higher score if line with max number of common features have fewer
+        line = max(FixedRules.get_lines(state), key=lambda x: x[2])
+        return 4 - line[2]
+
+
 class StateReward:
     MIN_SIZE = 5
     state_length = (MULTILINE_BLOCK)*2

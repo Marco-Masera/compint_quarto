@@ -109,8 +109,7 @@ def flat_pawns(state, pawn):
         dip.append([ n_bit_in_common(elems[i], elems[x]) for x in range(16) ])
     #Call the recursive function that makes the flattening
     elems = flat_pawns_recursive([], dip, 0)
-
-    #Ugly messing around with the result again
+    
     j = 0
     for i in range(len(state)):
         if (state[i]!=-1):
