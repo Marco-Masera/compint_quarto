@@ -3,26 +3,13 @@ import argparse
 import random
 import quarto
 from quarto_agent import QuartoAgent
-
-class RandomPlayer(quarto.Player):
-    """Random player"""
-
-    def __init__(self, quarto: quarto.Quarto) -> None:
-        super().__init__(quarto)
-
-    def choose_piece(self) -> int:
-        return random.randint(0, 15)
-
-    def place_piece(self) -> tuple[int, int]:
-        return random.randint(0, 3), random.randint(0, 3)
+from tests import *
 
 
 def main():
-    game = quarto.Quarto()
-    q = QuartoAgent(game)
-    game.set_players((q, RandomPlayer(game)))
-    winner = game.run()
-    logging.warning(f"main: Winner: player {winner}")
+    #test_against_random_agent()
+    #test_against_random_reward()
+    test_single_match()
 
 
 if __name__ == '__main__':

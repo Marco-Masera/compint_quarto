@@ -38,9 +38,10 @@ class Quarto(object):
     MAX_PLAYERS = 2
     BOARD_SIDE = 4
 
-    def __init__(self) -> None:
+    def __init__(self, no_print = False) -> None:
         self.__players = ()
         self.reset()
+        self.no_print = no_print
 
     def reset(self):
         self._board = np.ones(
@@ -112,6 +113,8 @@ class Quarto(object):
         '''
         Print the board
         '''
+        if (self.no_print):
+            return
         for row in self._board:
             print("\n -------------------")
             print("|", end="")

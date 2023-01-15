@@ -11,17 +11,29 @@ import random
 #State = [np_array[chessboard], assigned_pawn, set[remaining])
 class RealAgent():
     #Higher = more precision but slower
-    MAX_NODES = 5000
+    MAX_NODES = 10000
     MINMAX_FROM = 5
 
-    def __init__(self):
+    def __init__(self, use_debug_random_reward = False):
         self.get_random_genome()
         self.cache = dict() # (reward, initial_depth)
-        self.reward_extimator = StateReward(genome=StateReward.load_genome())
+        if (not use_debug_random_reward):
+            self.reward_extimator = StateReward(genome=StateReward.load_genome())
+        else:
+            self.reward_extimator = StateReward()
 
     def get_random_genome(self):
-        self.WIDTHS = np.array([10 for _ in range(9 + 5 - RealAgent.MINMAX_FROM)]) #0..8 per length 5..13; dopo per stati con minmax
+        self.WIDTHS = np.array([6 for _ in range(9 + 5 - RealAgent.MINMAX_FROM)]) #0..8 per length 5..13; dopo per stati con minmax
         self.FIXED_RULE = [FixedRules.max_active_lines, FixedRules.min_active_lines, FixedRules.min_common_features, FixedRules.min_n_pawns_biggest_line][random.randint(0,3)]
+
+    def hash_state(state, chosen_pawn):
+        s = 0
+        for index, item in enumerate(state):
+            it = int(item) #prevent overflow
+            s += (it * (17**(index)))
+        s += (chosen_pawn * (17**(16)))
+        return s
+
 
     def solve_with_fixed_rules(self, states):
         return [  -self.FIXED_RULE(state) for state in states ]
@@ -30,7 +42,8 @@ class RealAgent():
     def solve_with_minmax(self, states, depth):
         result = []
         #For each state to be avaluated
-        for state in states:
+        for index,state in enumerate(states):
+            print(f"{index} of {len(states)}")
             #Check if winning or full
             full, winning = checkState(state[0])
             if (winning):
@@ -48,7 +61,6 @@ class RealAgent():
             if (str(state) in self.cache):
                 cached = self.cache[str(state)]
                 if (cached[1] >= depth):
-                    print("Cache hit")
                     result.append(cached[0])
                     continue
             best_result = -99999
@@ -67,16 +79,16 @@ class RealAgent():
 
     def solve_with_heuristic(self, states, initial_depth, depth, width):
         results = []
-        for indx,state in enumerate(states):
+        for state in states:
             #Check if winning or full
             full, winning = checkState(state[0])
             if (winning):
                 results.append(-1000)
-                #self.cache[str(state)] = (-1000, 1000)
+                self.cache[str(state)] = (-1000, 1000)
                 continue
             if (full):
                 results.append(0)
-                #self.cache[str(state)] = (0, 1000)
+                self.cache[str(state)] = (0, 1000)
                 continue
             if (str(state) in self.cache):
                 cached = self.cache[str(state)]
@@ -84,9 +96,12 @@ class RealAgent():
                     results.append(cached[0])
                     continue
             
-            if (depth >= self.MAX_DEPTH):
+            count = len([x for x in state[0] if x!=-1])
+
+            if (depth >= self.MAX_DEPTH or count == 15):
                 results.append(self.reward_extimator.get_reward(state))
                 continue
+
 
             children = []
             for index, box in enumerate(state[0]):
@@ -95,7 +110,7 @@ class RealAgent():
                     new_board = np.copy(state[0])
                     new_board[index] = state[1]
                     collapsed = collapse(new_board, pawn)
-                    new_state = [ np.array(collapsed[0]), collapsed[1], list(set([x for x in range(16)]) - set(state[0]) - set([state[1]]))]
+                    new_state = [ np.array(collapsed[0]), collapsed[1], list( (set( [x for x in range(16)] ) - set(collapsed[0])) - set( [collapsed[1],]))]
                     children.append( new_state )
 
             children.sort(key = lambda x: self.reward_extimator.get_reward(x))
@@ -117,7 +132,7 @@ class RealAgent():
         collapsed_states = []
         for state in states:
             collapsed = collapse(state[0], state[1])
-            collapsed_states.append([ np.array(collapsed[0]), collapsed[1], list(set([x for x in range(16)]) - set(collapsed[0]) - set([collapsed[1],]))])
+            collapsed_states.append([ np.array(collapsed[0]), collapsed[1], list( (set( [x for x in range(16)] ) - set(collapsed[0])) - set( [collapsed[1],]))])
         #Get width
         if (initial_depth < 14):
             INDEX = initial_depth - 5
@@ -134,10 +149,10 @@ class RealAgent():
         return int( log(RealAgent.MAX_NODES, width) )
 
 class QuartoAgent(quarto.Player):
-    def __init__(self, quarto: quarto.Quarto) -> None:
+    def __init__(self, quarto: quarto.Quarto, debug_use_random_reward = False) -> None:
         super().__init__(quarto)
         self.chosen_piece = None
-        self.realAgent = RealAgent()
+        self.realAgent = RealAgent(debug_use_random_reward)
 
     def choose_piece(self) -> int:
         if (self.chosen_piece!=None):
@@ -157,15 +172,19 @@ class QuartoAgent(quarto.Player):
             for j in range(0,4):
                 if (board[i][j] in usable_pieces):
                     usable_pieces.remove(board[i][j])
+        if (len(usable_pieces)==0):
+            for i in range(0,4):
+                for j in range(0,4):
+                    if (board[i][j] != -1): return (j,i)
         for i in range(0,4):
             for j in range(0,4):
                 if (board[i][j] != -1): continue
                 for piece in usable_pieces:
-                    pass #This is a possible move
                     moves.append((i,j,piece))
                     board[i][j] = usable_piece
                     states.append(self.convert_state_format(board, piece)) 
                     board[i][j] = -1
+    
         solved = self.realAgent.solve_states(states)
         index = solved.index(min(solved))
         move = moves[index]

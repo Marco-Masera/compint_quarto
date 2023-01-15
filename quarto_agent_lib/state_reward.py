@@ -106,8 +106,8 @@ class StateReward:
     
     def solve_last_move(self,state):
         st = copy.deepcopy(state)
-        for box in st[0]:
-            if (box==-1): box = st[1]
+        for index,box in enumerate(st[0]):
+            if (box==-1): st[0][index] = st[1]
         full, winning = checkState(st[0])
         if (winning):
             return 120
