@@ -1,5 +1,7 @@
 Agente
 
+>Aggiungere cache con hash function per memorizzare stati buoni e stati pessimi
+
 >Basato su MinMax
 >Utilizzo di Reward_Ext 
 >Diverse politiche possibili:

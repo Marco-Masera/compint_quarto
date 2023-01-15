@@ -2,7 +2,7 @@ import numpy as np
 import json
 import random
 import copy
-from quarto_utils import checkState, bits_in_common_multiple
+from quarto_agent_lib.quarto_utils import checkState, bits_in_common_multiple
 
 #Init some static stuff to calculate the feature faster during runtime
 LINES = [
@@ -49,9 +49,11 @@ class FixedRules():
             if (acc == 0 or count==0):
                 mylines[index] = (False, 0, 0)
             else:
+                n_ones = 0
                 for bit in str(bin(acc)):
                     if (bit=='1'): n_ones+=1
                 mylines[index] = (True, count, n_ones)
+        return mylines
 
     def min_active_lines(state):
         #Higher score if fewer active lines
@@ -89,7 +91,7 @@ class StateReward:
         return genome
     
     def load_genome():
-        with open("training/reward_genome.json", 'r') as source:
+        with open("quarto_agent_lib/training/reward_genome.json", 'r') as source:
             genome = json.load(source)
         g = dict()
         for key in genome.keys():

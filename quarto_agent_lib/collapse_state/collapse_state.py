@@ -15,7 +15,6 @@ import numpy as np
    0        15
 """
 
-
 def rotate(state):
     s = np.copy(state)
     temp = [s[0], s[2], s[5],s[9]]
