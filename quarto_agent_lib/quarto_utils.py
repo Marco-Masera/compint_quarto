@@ -1,11 +1,9 @@
 import time
 #Collection of utils 
+
 diagonals=[(0, 1, 3, 6), (2, 4, 7, 10), (5,8, 11, 13), (9, 12, 14, 15),
         (6, 10, 13, 15), (3, 7, 11, 14), (1, 4, 8, 12), (0, 2, 5, 9),
         (6, 7, 8, 9), (0, 4, 11, 15)]
-
-
-        
 
 def checkState(state): # -> (isChessboardFull, isWinning)
     global diagonals
@@ -25,7 +23,7 @@ def checkState(state): # -> (isChessboardFull, isWinning)
             return (True, True)
     return (full, False)
     
-
+#bits in common between lists of integers
 def bits_in_common_multiple(list_, list2 = None, last = None, acc = 15):
     for elem in list_:
         if (last != None):

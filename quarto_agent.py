@@ -87,7 +87,6 @@ class StatesCache():
 class RealAgent():
     #Higher = more precision but slower
     MAX_NODES = 2000
-    MINMAX_FROM = 5
     MIN_WIDTH = 2
     MAX_WIDTH = 40
 
@@ -152,45 +151,6 @@ class RealAgent():
     def solve_with_fixed_rules(self, states):
         return [  -self.FIXED_RULE(state) for state in states ]
 
-
-    def solve_with_minmax(self, states, depth):
-        result = []
-        #For each state to be avaluated
-        for index,state in enumerate(states):
-            print(f"{index} of {len(states)}")
-            #Check if winning or full
-            full, winning = checkState(state[0])
-            if (winning):
-                result.append(-1000)
-                self.cache[str(state)] = (-1000, 1000)
-                continue
-            if (full):
-                result.append(0)
-                self.cache[str(state)] = (0, 1000)
-                continue
-            
-            #Collapse and cache
-            collapsed = collapse(state[0], state[1])
-            state = [ np.array(collapsed[0]), collapsed[1], list(set([x for x in range(16) if x != collapsed[1]]) - set(collapsed[0]) )]
-            if (str(state) in self.cache):
-                cached = self.cache[str(state)]
-                if (cached[1] >= depth):
-                    result.append(cached[0])
-                    continue
-            best_result = -99999
-            #For each move possible in that state
-            for index, box in enumerate(state[0]):
-                if (box != -1): continue 
-                for pawn in state[2]:
-                    state_c = copy(state[0])
-                    state_c[index] = state[1]
-                    best_result = max(best_result, -(self.solve_states([ [state_c, pawn, state[2]] ]))[0], depth )
-                    if (best_result == 1000): break
-            result.append(best_result)
-            self.cache[str(state)] = (best_result, 1000)
-        return result 
-
-
     def solve_with_heuristic(self, states, initial_depth, depth, width):
         results = []
         for state in states:
@@ -246,10 +206,9 @@ class RealAgent():
         states_depth = StateReward.count_state_size(states[0][0])
         if (initial_depth == None):
             initial_depth = states_depth
-        if (states_depth < RealAgent.MINMAX_FROM):
-            return self.solve_with_fixed_rules(states)
         if (states_depth < 5):
-            return self.solve_with_minmax(states, initial_depth)
+            return self.solve_with_fixed_rules(states)
+
         #Collapse 
         collapsed_states = []
         for state in states:
@@ -270,6 +229,7 @@ class RealAgent():
 
     def getDepthByWidth(width):
         return int( log(RealAgent.MAX_NODES, width) )
+        
     def __lt__(self, other):
         return False
 

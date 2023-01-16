@@ -5,7 +5,7 @@ from collapse_state.collapse_state import collapse
 from quarto_utils import checkState
 from state_reward import StateReward
 
-export_file = "dataset/raw/dataset_v9_"
+export_file = "dataset/raw/dataset_v0_"
 DEPTH = 11
 STOP_AT = 10 #Anche 10
 MAX_BEFORE_DISCARD = 8000000

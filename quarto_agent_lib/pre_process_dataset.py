@@ -23,6 +23,7 @@ class PreProcessDataset:
         for path in paths:
             with open(path, 'r') as source:
                 dataset = json.load(source)
+            #Divide dataset in subsets by reward value and size
             for record in dataset['exp']:
                 full, winning = checkState(record[0][0])
                 count = PreProcessDataset.count_state_size(record[0][0])
@@ -39,9 +40,8 @@ class PreProcessDataset:
                     processed[count]['neut'].append(StateReward.process_state_for_dataset(record))
                 sum_ += 1
         
-        #Balance
+        #Balance the subsets
         sum_ = 0
-        print("Balanced 1")
         for key in processed.keys():
             target = max(len(processed[key]['neg']), len(processed[key]['neut']), 30)
             target = min(target, PreProcessDataset.MAX_SIZE)
@@ -55,7 +55,7 @@ class PreProcessDataset:
         for key in processed.keys():
             print(f"{key}: {len(processed[key]['pos'])} pos, {len(processed[key]['neut'])} neut, {len(processed[key]['neg'])} neg")
         print(f"In total: {sum_} states available to export")
-        #Get two separate datasets
+        #Get two disjointed datasets
         tranining_dataset = dict()
         validate_dataset = dict()
         for key in processed.keys():

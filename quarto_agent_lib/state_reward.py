@@ -33,7 +33,7 @@ for index,line in enumerate(LINES):
 LINES_PRECEDING[len(LINES_PRECEDING)-1] = count_
 MULTILINE_BLOCK = ((LINES_PRECEDING[len(LINES_PRECEDING)-1] * 6) + 80)
 
-
+#Set of fixed rules
 class FixedRules():
     def get_lines(state):
         mylines = np.array([(False, 0,0) for _ in range(16)]) #(Active, N_Pawns, N_Features)
@@ -129,7 +129,6 @@ class StateReward:
         else:
             return max(-140, reward)
 
-    #State needs to be processed via process_state before this function is called
     def get_reward(self, state): #State = ([chessboard], assigned_pawn, set[remaining])
         global LINES; global LINES_PRECEDING; global MULTILINE_BLOCK;
 
@@ -161,14 +160,14 @@ class StateReward:
             if (acc == 0):
                 mylines[index] = (False, acc, 0)
                 continue 
-            #can extend, can block -> calcolati da pawn
+            #can extend, can block -> computed from pawn
             if (state[1]!=None):
                 if (count != 0 and acc & (~(state[1] ^ last))):#(can_extend):
                     self.truth_value[(index*8) + count] = 1
                 else: # (can_block):
                     self.truth_value[(index*8) + count + 4] = 1
 
-            #posso bloccare avversario -> calcolato
+            #Is there a pawn to extend or block the line
             one_extending = False; one_blocking = False
             for pawn in state[2]:
                 if (count!=0 and acc & (~(pawn ^ last))):
@@ -181,18 +180,18 @@ class StateReward:
                 self.truth_value[MULTILINE_BLOCK + (index*8) + count] = 1
             elif (one_blocking):
                 self.truth_value[MULTILINE_BLOCK + (index*8) + count + 4] = 1
-            #aggiorna linea singola -> index
+            #updates single line
             if (last==None):
                 last = -1
             mylines[index] = (True, acc, last)
-        #Secondo giro
+        #Second round - line x connected lines
         for index,line in enumerate(LINES):
             if (mylines[index][0] == False): continue
             for common in line[1]:
                 if (mylines[common[0]][0] == False): continue
                 if (chessboard[common[1]] != -1): continue 
 
-                #Verifica se posso bloccare entrambe, aumentarle entrambe o una e una
+                #Checks if can block both, increase both, or one and one
                 acc = mylines[index][1]; acc2 = mylines[common[0]][1]
                 if (state[1]!=None):
                     can_extend_one = (acc & (~(state[1] ^ mylines[index][2])))!=0
@@ -203,7 +202,7 @@ class StateReward:
                         self.truth_value[80 + (LINES_PRECEDING[index] * 6) + 1] = 2
                     else:
                         self.truth_value[80 + (LINES_PRECEDING[index] * 6) + 2] = 3
-                #verifica se posso bloccare avversario, verifica se può bloccare me
+                #Check if i can block the adversary and if he can block me
                 canEO = 0; canBO = 0; canM = 0
                 for pawn in state[2]:
                     can_extend_one = (acc & (~(pawn ^ mylines[index][2])))!=0
@@ -256,14 +255,14 @@ class StateReward:
 STATES = [] # [ [chessboard], pawn, [remaining], real_reward ]
 VALIDATION_STATES = []
 SAMPLE_TARGET = 8
-#Min 5
 LENGTHS_TO_TRAIN = ["6","8","9","10",  "11","12","13","15"]
-
+#Hill climber
 class Climber:
     def __init__(self):
         self.individual = StateReward(genome=StateReward.load_genome())
         self.build_truth_values()
-
+    #Builds truth value arrays for the records in the dataset.
+    #It helps speeding things up - this way it don't need to be computed at each iteration
     def build_truth_values(self):
         self.states_truth_values = dict()
         for size_ in STATES.keys():
@@ -382,45 +381,35 @@ def load_data():
                 VALIDATION_STATES[size_] = states_2[size_]
 
             
-
+#
 def climb():
     load_data()
     generation = 2
 
     climber = Climber()
     climber.print_evaluations(climber.individual, VALIDATION_STATES)
-    for i in range(40):
+    for i in range(200):
         print(f"Gen {i}")
         climber.new_gen(0.15)
     export(climber, 1,generation)
-    for i in range(100):
+    for i in range(800):
         print(f"Gen {i}")
         climber.new_gen(0.1)
     export(climber, 2,generation)
     exp_n = 2
-    for i in range(100):
+    for i in range(800):
         print(f"Gen {i}")
         climber.new_gen(0.07)
         
     export(climber, exp_n,generation)
     climber.print_evaluations(climber.individual, VALIDATION_STATES)
     return
-    for i in range(150):
-        print(f"Gen {i}")
-        climber.new_gen(0.05)
-        if (i%20==0):
-            exp_n += 1
-            export(climber, exp_n,generation)
-            
-    export(climber, exp_n+1,generation)
-
-    climber.validate()
 
 if (__name__=='__main__'):
     climb()
 
 
-#This class was meant to train the model using GA, but it was never used.
+#This class was meant to train the model using GA, but it was never used
 class Island:
     def __init__(self, population_size, offspring_size, mutations):
         self.population_size = population_size

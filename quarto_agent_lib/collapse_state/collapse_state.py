@@ -76,6 +76,7 @@ def n_bit_in_common(n1, n2):
 
 all_elems = set([x for x in range(16)])
 
+
 def flat_pawns_recursive(elems, dipendenze, posizione):
     if (posizione>=len(dipendenze)):
         return [elems] 

@@ -4,8 +4,8 @@ from quarto_agent import QuartoAgent, RealAgent
 
 N_INDIVIDUALS = 18
 N_SURVIVORS = 8
-N_GEN = 2
-
+N_GEN = 30
+EXPORT_AT = 5
 Nf = 0
 
 def fight(ind1, ind2):
@@ -53,10 +53,9 @@ def train():
         print(f"Generation {i} - best score {individuals[0][0]}")
         print(f"Generation {i} - second best score {individuals[1][0]}")
         print(f"Generation {i} - third best score {individuals[2][0]}")
-        if (i == N_GEN-1):
+        if (i == N_GEN-1 or i%EXPORT_AT):
             print("Exp")
             individuals[0][1].export_genome()
-            break
         individuals = []
         for _ in range(N_INDIVIDUALS):
             c = random.choices(new_gen, k=2)
