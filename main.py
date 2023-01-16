@@ -4,12 +4,19 @@ import random
 import quarto
 from quarto_agent import QuartoAgent
 from tests import *
+from train_agent_params import train
 
+
+def train_agent_params():
+    train()
 
 def main():
     #test_against_random_agent()
     #test_against_random_reward()
-    test_single_match()
+    #test_single_match()
+    #test_cache_vs_no_cache()
+    #test_cache_vs_cache()
+    train_agent_params()
 
 
 if __name__ == '__main__':

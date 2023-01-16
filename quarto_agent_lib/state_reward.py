@@ -71,6 +71,15 @@ class FixedRules():
         #Higher score if line with max number of common features have fewer
         line = max(FixedRules.get_lines(state), key=lambda x: x[2])
         return 4 - line[2]
+    def get_function(n):
+        if (n==0):
+            return FixedRules.min_active_lines
+        if (n==1):
+            return FixedRules.max_active_lines
+        if (n==2):
+            return FixedRules.min_n_pawns_biggest_line
+        if (n==3):
+            return FixedRules.min_common_features
 
 
 class StateReward:
