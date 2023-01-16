@@ -3,21 +3,23 @@ import argparse
 import random
 import quarto
 from quarto_agent import QuartoAgent
-from tests import *
+from tests import TestAgent
 from train_agent_params import train
+from train_rl_agent import TrainRLAgent
 
+def run_tests():
+    TestAgent.run_test(5)
 
 def train_agent_params():
     train()
 
-def main():
-    #test_against_random_agent()
-    #test_against_random_reward()
-    #test_single_match()
-    #test_cache_vs_no_cache()
-    #test_cache_vs_cache()
-    train_agent_params()
+def train_rl_agent():
+    TrainRLAgent.train(30)
 
+def main():
+    run_tests()
+    #train_agent_params()
+    #train_agent_params
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

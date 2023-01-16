@@ -156,7 +156,7 @@ class RealAgent():
         for state in states:
             self.N += 1
             if (self.N % 500 == 0):
-                print(self.N)
+                pass#print(self.N)
             #Check if winning or full
             full, winning = checkState(state[0])
             if (winning):
@@ -244,7 +244,7 @@ class QuartoAgent(quarto.Player):
             self.realAgent.states_cache = self.st_cache
         self.save_states = save_states
 
-    def get_agent_(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
+    def get_agent(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
         return QuartoAgent(quarto, realAgent=RealAgent(), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)
 
 

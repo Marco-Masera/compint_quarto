@@ -2,9 +2,6 @@ import random
 import quarto
 from quarto_agent import QuartoAgent
 
-#This file is meant to test the agent quality
-
-
 class RandomPlayer(quarto.Player):
     """Random player"""
 
@@ -25,92 +22,130 @@ def test_against_random_agent():
     for i in range(30):
         game = quarto.Quarto(no_print=True)
         q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        q.new_match()
         rando = RandomPlayer(game)
         game.set_players((q, rando))
         winner = game.run()
         print(winner)
-        if (winner != -1):
-            q.end_match(winner==0)
-        wins[winner+1] += 1
-    print (wins)
-
-#Test against the QuartoAgent with StateReward initialized with random genome
-def test_against_random_reward():
-    random.seed()
-    print("Testing QuartoAgent against itself with random reward genome")
-    wins = [0, 0, 0]
-    for i in range(10):
-        game = quarto.Quarto(no_print=True)
-        q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        q.new_match()
-        q_rand = QuartoAgent.get_agent(game, use_cache = True, save_states = False, debug_use_random_reward=True)
-        q_rand.new_match()
-        game.set_players((q, q_rand))
-        winner = game.run()
-        if (winner != -1):
-            q.end_match(winner==0)
-            q_rand.end_match(winner==1)
-        print(winner)
-        wins[winner+1] += 1
-    print (wins)
-    print("Now reversed")
-    wins = [0, 0, 0]
-    for i in range(10):
-        game = quarto.Quarto(no_print=True)
-        q = QuartoAgent.get_agent(game, use_cache = True, save_states = False, debug_use_random_reward=True)
-        q_rand = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        game.set_players((q_rand, q))
-        winner = game.run()
-        print(winner)
         wins[winner+1] += 1
     print (wins)
 
 
-def test_cache_vs_no_cache():
-    random.seed()
-    print("Testing QuartoAgent cache vs no cache")
-    wins = [0, 0, 0]
-    for i in range(10):
-        game = quarto.Quarto(no_print=True)
-        q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        q.new_match()
-        q2 = QuartoAgent.get_agent(game, use_cache = False, save_states = False)
-        game.set_players((q, q2))
-        winner = game.run()
-        if (winner != -1):
-            q.end_match(winner==0)
-        print(winner)
-        wins[winner+1] += 1
-    print (wins)
+#This class provides tests for the agent
+class TestAgent():
+    def run_test(iterations):
+        random.seed()
+        print("Testing QuartoAgent against random agent")
+        print(f"Result: {TestAgent.test_against_random_agent(iterations)}")
 
-def test_cache_vs_cache():
-    random.seed()
-    print("Testing QuartoAgent cache vs itself")
-    wins = [0, 0, 0]
-    for i in range(10):
-        game = quarto.Quarto(no_print=True)
-        q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        q.new_match()
-        q2 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-        q2.new_match()
-        game.set_players((q, q2))
-        winner = game.run()
-        if (winner != -1):
-            q.end_match(winner==0)
-        print(winner)
-        wins[winner+1] += 1
-    print (wins)
+        print("Testing QuartoAgent against itself with random reward genome and no cache")
+        print(f"Result: {TestAgent.test_against_random_reward(iterations, False)}")
+
+        print("Testing QuartoAgent against itself with random reward genome")
+        print(f"Result: {TestAgent.test_against_random_reward(iterations)}")
+
+        print("Testing QuartoAgent against itself with cache disabled")
+        print(f"Result: {TestAgent.test_against_no_cache(iterations)}")
+
+        print("Testing QuartoAgent against itself with random play parameters")
+        print(f"Result: {TestAgent.test_against_no_params(iterations)}")
+
     
+    def test_against_random_agent(iterations):
+        wins = 0
+        ties = 0
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = RandomPlayer(game)
+            game.set_players((q1, q2))
+            winner = game.run()
+            if (winner==0): wins += 1
+            if (winner==-1): ties += 1
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = RandomPlayer(game)
+            game.set_players((q2, q1))
+            winner = game.run()
+            if (winner==1): wins += 1
+            if (winner==-1): ties += 1
+        return {
+            "victory": wins / (int(iterations/2)*2),
+            "ties": ties / (int(iterations/2)*2)
+        }
 
-def test_single_match():
-    random.seed()
-    game = quarto.Quarto(no_print = True)
-    q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
-    q.new_match()
-    rando = RandomPlayer(game)
-    game.set_players((q, rando))
-    winner = game.run()
-    if (winner != -1):
-        q.end_match(winner==0)
-    print(winner)
+    #Test against the QuartoAgent with StateReward initialized with random parameters
+    def test_against_no_params(iterations):
+        wins = 0
+        ties = 0
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = QuartoAgent.get_agent_random_genome(game, use_cache = False, save_states = False, debug_use_random_reward=False)
+            game.set_players((q1, q2))
+            winner = game.run()
+            if (winner==0): wins += 1
+            if (winner==-1): ties += 1
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = QuartoAgent.get_agent_random_genome(game, use_cache = False, save_states = False, debug_use_random_reward=False)
+            game.set_players((q2, q1))
+            winner = game.run()
+            if (winner==1): wins += 1
+            if (winner==-1): ties += 1
+        return {
+            "victory": wins / (int(iterations/2)*2),
+            "ties": ties / (int(iterations/2)*2)
+        }
+
+    #Test against the QuartoAgent with StateReward initialized with random genome
+    def test_against_no_cache(iterations):
+        wins = 0
+        ties = 0
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = QuartoAgent.get_agent(game, use_cache = False, save_states = False, debug_use_random_reward=False)
+            game.set_players((q1, q2))
+            winner = game.run()
+            if (winner==0): wins += 1
+            if (winner==-1): ties += 1
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q2 = QuartoAgent.get_agent(game, use_cache = False, save_states = False, debug_use_random_reward=False)
+            game.set_players((q2, q1))
+            winner = game.run()
+            if (winner==1): wins += 1
+            if (winner==-1): ties += 1
+        return {
+            "victory": wins / (int(iterations/2)*2),
+            "ties": ties / (int(iterations/2)*2)
+        }
+
+    #Test against the QuartoAgent with StateReward initialized with random genome
+    def test_against_random_reward(iterations, use_cache = True):
+        wins = 0
+        ties = 0
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q_rand = QuartoAgent.get_agent(game, use_cache = use_cache, save_states = False, debug_use_random_reward=True)
+            game.set_players((q, q_rand))
+            winner = game.run()
+            if (winner==0): wins += 1
+            if (winner==-1): ties += 1
+        for i in range(int(iterations/2)):
+            game = quarto.Quarto(no_print=True)
+            q = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
+            q_rand = QuartoAgent.get_agent(game, use_cache = use_cache, save_states = False, debug_use_random_reward=True)
+            game.set_players((q_rand, q))
+            winner = game.run()
+            if (winner==1): wins += 1
+            if (winner==-1): ties += 1
+        return {
+            "victory": wins / (int(iterations/2)*2),
+            "ties": ties / (int(iterations/2)*2)
+        }
+
