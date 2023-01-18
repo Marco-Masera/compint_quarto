@@ -1,7 +1,7 @@
 import random
 import quarto
 from quarto_agent import QuartoAgent, RealAgent
-
+from quarto_agent_lib.state_reward import StateReward, FixedRules
 N_INDIVIDUALS = 18
 N_SURVIVORS = 8
 N_GEN = 30
@@ -10,25 +10,25 @@ Nf = 0
 
 def fight(ind1, ind2):
     global Nf
-    print(f"Fight n {Nf}")
     Nf += 1
     game = quarto.Quarto(no_print=True)
-    agent_1 = QuartoAgent.get_agent_custom_realagent(game, ind1)
+    agent_1 = QuartoAgent.get_agent_custom_realagent(game, ind1, save_states = True)
     agent_2 = QuartoAgent.get_agent_custom_realagent(game, ind2)
     game.set_players((agent_1, agent_2))
+    agent_1.new_match()
     winner = game.run()
     if (winner == -1):
         return 0
+    agent_1.end_match(winner==0)
     if (winner == 0):
         return 1
     return -1
 
 def value_individuals(individuals):
-    #Each individual fights 6 others
     points = [0 for _ in range(len(individuals))]
-
     for i in range(0, len(individuals)):
         for j in range(i+1, len(individuals)):
+            print(f"{j + (i*len(individuals))} over {(len(individuals) * (len(individuals)-1)) / 2}")
             result = 0
             if (j%2==0):
                 result = fight(individuals[i], individuals[j])
@@ -36,26 +36,55 @@ def value_individuals(individuals):
                 result = -fight(individuals[j], individuals[i])
             points[i] += result 
             points[j] -= result
-            print("End fight")
-    return [ [points[i], individuals[i]] for i in range(len(individuals))]
+    #return [ [points[i], individuals[i]] for i in range(len(individuals))]
+    return points #todo 
+
+def train_de(genomes):
+    random.seed()
+    
+    inds = []
+    for genome in genomes:
+        ind = RealAgent(random_genome=True)
+        ind.WIDTHS = genome["WIDTHS"]
+        ind.FIXED_RULE_N = genome["RULE"]
+        ind.FIXED_RULE = FixedRules.get_function(ind.FIXED_RULE_N)
+        inds.append(ind)
+    points = [0 for _ in range(len(genomes))]
+    for i in range(3):
+        print(f"Iteration {i}")
+        new_p = value_individuals(inds)
+        for i in range(len(genomes)):
+            points[i] += new_p[i]
+    for i in range(len(genomes)):
+        print(f"Points: {points[i]}")
+        print(genomes[i])
+        print("...")
 
 def train():
+    genomes = [
+        {'WIDTHS': [3, 3, 3, 3, 3, 4, 5, 5, 5], 'RULE': 0}, #28
+        {'WIDTHS': [3, 3, 3, 3, 3, 4, 5, 5, 5], 'RULE': 2}, #17
+        {'WIDTHS': [30, 30, 30, 20, 20, 20, 20, 20, 20], 'RULE': 0},
+        {'WIDTHS': [2, 2, 2, 2, 2, 4, 5, 5, 5], 'RULE': 0} #28
+    ]
+    train_de(genomes)
+
+def train_():
     random.seed()
     individuals = [ RealAgent(random_genome=True) for _ in range(N_INDIVIDUALS) ]
     for i in range(N_GEN):
         print(f"Generation {i} of {N_GEN}")
-        l = int(len(individuals)/3)
-        individuals = value_individuals(individuals[:l])
-        individuals.extend(value_individuals(individuals[l:l*2]))
-        individuals.extend(value_individuals(individuals[l*2:len(individuals)]))
-        individuals.sort(reverse = True)
-        new_gen = individuals[:N_SURVIVORS]
-        print(f"Generation {i} - best score {individuals[0][0]}")
-        print(f"Generation {i} - second best score {individuals[1][0]}")
-        print(f"Generation {i} - third best score {individuals[2][0]}")
+        l = int(len(individuals)/2)
+        ind_ = value_individuals(individuals[:l])
+        ind_.extend(value_individuals(individuals[l:len(individuals)]))
+        ind_.sort(reverse = True)
+        new_gen = ind_[:N_SURVIVORS]
+        print(f"Generation {i} - best score {ind_[0][0]}")
+        print(f"Generation {i} - second best score {ind_[1][0]}")
+        print(f"Generation {i} - third best score {ind_[2][0]}")
         if (i == N_GEN-1 or i%EXPORT_AT):
             print("Exp")
-            individuals[0][1].export_genome()
+            ind_[0][1].export_genome()
         individuals = []
         for _ in range(N_INDIVIDUALS):
             c = random.choices(new_gen, k=2)

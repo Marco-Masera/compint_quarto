@@ -8,7 +8,7 @@ from quarto_agent_lib.state_reward import StateReward, FixedRules
 import random
 import json
 
-
+#Rl layer for the agent
 class StatesCache():
     def __init__(self):
         self.cache = StatesCache.load_cache()
@@ -139,17 +139,29 @@ class RealAgent():
             new_ind.FIXED_RULE = other.FIXED_RULE
         new_ind.WIDTHS = np.array([
             random.choice([self.WIDTHS[i], other.WIDTHS[i]])
-            for i in range(9 + 5 - RealAgent.MINMAX_FROM)
+            for i in range(9)
             ]) 
         return new_ind
 
     def get_random_genome(self):
-        self.WIDTHS = np.array([random.randint(RealAgent.MIN_WIDTH,RealAgent.MAX_WIDTH) for _ in range(9 + 5 - RealAgent.MINMAX_FROM)]) #0..8 per length 5..13; dopo per stati con minmax
+        self.WIDTHS = np.array([random.randint(RealAgent.MIN_WIDTH,RealAgent.MAX_WIDTH) for _ in range(9)]) #0..8 per length 5..13; dopo per stati con minmax
         self.FIXED_RULE_N = random.randint(0,3)
         self.FIXED_RULE = FixedRules.get_function(self.FIXED_RULE_N)
 
+    def fixed_rule_points(state, rule):
+        lines = FixedRules.get_lines(state)
+        #Check if winning state
+        if len( [l for l in lines if l[0]==True and l[1]==4] )>0:
+            return -100
+        #Check if losing state
+        if len( [l for l in lines 
+            if l[0]==True and l[1]==3 and (l[3]&(~(state[1] ^ l[4]))!=0)
+        ] )>0:
+            return 100
+        return - (rule(state, lines))
+
     def solve_with_fixed_rules(self, states):
-        return [  -self.FIXED_RULE(state) for state in states ]
+        return [  RealAgent.fixed_rule_points(state,self.FIXED_RULE) for state in states ]
 
     def solve_with_heuristic(self, states, initial_depth, depth, width):
         results = []
@@ -218,7 +230,7 @@ class RealAgent():
         if (initial_depth < 14):
             INDEX = initial_depth - 5
             if (INDEX < 0):
-                INDEX = 9 + (initial_depth - RealAgent.MINMAX_FROM)
+                INDEX = 0
             WIDTH = self.WIDTHS[INDEX]
             self.MAX_DEPTH = RealAgent.getDepthByWidth(WIDTH) + initial_depth
         else:
@@ -246,7 +258,6 @@ class QuartoAgent(quarto.Player):
 
     def get_agent(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
         return QuartoAgent(quarto, realAgent=RealAgent(), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)
-
 
     def get_agent_random_genome(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
         return QuartoAgent(quarto, realAgent=RealAgent(random_genome=True, use_debug_random_reward=debug_use_random_reward), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)

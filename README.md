@@ -2,7 +2,7 @@
 The general idea is to build the Quarto agent in 4 steps:
 * Find a function that allow to restrict the space of possible game states to reduce the complexity of the next steps.
 * Generate a dataset of game states paired with a reward value, computed with some variant of MinMax.
-* Use some learning strategy to try and learn from the dataset an extimate reward function for game states, that hopefully generalize to all the possible game states.
+* Use some learning strategy to try and learn from the dataset an extimate heuristic reward function for game states, that hopefully generalize to all the possible game states.
 * Build an agent that uses the reward function, possibly paired with other learning strategies, to play Quarto effectively.
 
 # Internal representation of game states
@@ -30,7 +30,7 @@ This is implemented in the *collapse_state.py* script by two function:
 * States are collapsed by pawns by computing the dependency matrix between all pawns and finding another sequences of pawns that minimise another arbitrary function.
 
 # Generating the dataset
-The dataset is generated from randomly generated states of the chessboard. Each state is paired with a reward function that encodes how *good* it is to be in that state: a higher value means the player that finds himself in this state can win the game; a negative value means he will lose if the adversary plays good, a neutral means at best he can get a tie.
+The dataset is generated from randomly generated states of the chessboard. Each state is paired with a reward value that encodes how *good* it is to be in that state: a higher value means the player that finds himself in this state can win the game; a negative value means he will lose if the adversary plays good, a neutral means at best he can get a tie.
 
 The basic algorithm to compute the reward value is a variant of the MinMax algorithm with caching and the collapse state function. Compared to the traditional MinMax it does use some pruning, but less strictly compared to traditional alpha-beta pruning, as it always tries to find at least **MIN_NEUT** and **MIN_NEG** child states with a neutral and negative reward value. This prevents the algorithm from generating datasets that are overly imbalanced toward positive states, which would happen with a pure alpha-beta pruning.
 Note that here *positive* and *neutral* are aways considered from the point of view of the player that finds himself in the state. So MinMax gives a *positive* value of a state when it can find at least one child state with a *negative* one.
@@ -62,7 +62,7 @@ The general idea is to have a set of binary *features* that can be computed on t
 A *feature* can be any arbitrary function computed on the state of the game or on part of it.
 
 
-The first try involved a GA where both the features and the weights used to compute the reward function were dinamically learned. The number of features was fixed (N) but the algorithm could change which boxes of the chessboard were included in each feature and what function the feature would use. The weights were contained in an NxN matrix, associating a weight to each pair of features that could activate together.
+The first try involved a GA where both the features and the weights used to compute the reward heuristic were dinamically learned. The number of features was fixed (N) but the algorithm could change which boxes of the chessboard were included in each feature and what function the feature would use. The weights were contained in an NxN matrix, associating a weight to each pair of features that could activate together.
 This solution did not work and after many generations the algorithm could not provide better results compared to a pure random guess.
 
 The second version involves a vector of pre defined features, and the learning process would only change the vector of corresponding weights.
@@ -109,12 +109,22 @@ Of course it can be expected that the learned reward function for states with fe
 
 # Agent
 ## Overview
-The basic idea is to build the final agent as a Min-Max-like agent that makes use of the reward function. Instead of visiting each state's possible children, resulting in an unbearable number of nodes, this MinMax implementation can make an effective use of the reward extimate by:
+The basic idea is to build the final agent as a Min-Max-like - or Beam search-like agent that makes use of the reward function. Instead of visiting each state's possible children, resulting in an unbearable number of nodes, this MinMax implementation can make an effective use of the reward extimate by:
 * Limit the max depth: instead of waiting for a final state, the algorithm can stop at any depth and return the reward extimate of the given node.
 * Limit the width of each node's branch: instead of visiting all the children of a given node, the algorithm can use the reward extimate to visit only the N more promising children.
 
 This brings to the question: given a maximum number of nodes we can visit for each move to make (for time constraints), what is more effective, visiting fewer children nodes each time but going deeper, or going less deep and visit more children of each node?
 Another problem to solve is what to do with states with fewer than 5 pawns in it, since the reward function doesn't cover these.
+
+## Fixed rules
+States with [0..4] pawns in it cannot be evaluated by the reward function. A way to manage these states is to use fixed rules and let the agent learn which rule to use.
+The four fixed rules to be chosen from are:
+* Minimize the number of active rows, where a row is considered active if there is at least 1 pawn on it and all the pawns have at least 1 feature in common.
+* Maximize the number of active rows
+* Minimize the number of pawns in the biggest active line.
+* Minimize the maximum number of common features in active lines.
+
+Regardless of which rule is active, the agent always checks if the state is a winning one or if the adversary can win in 1 move from it.
 
 ## Using GA to find the params for the agent
 The agent have a fixed number of states that can be visited at each move to make: *MAX_NODES*. The more nodes, the more accurate the result will be, but also the more time consuming the function is. This value is fixed at 2000, allowing for a fast execution time
@@ -127,19 +137,34 @@ The other iusse, the one with states with less than 5 pawns, can be solved by us
 
 The agent can then have a genome composed by the *WIDTHS* array and one chosen *FixedRule*. From this, a GA can be used to find a good set of values.
 
-TODO dettagli GA
+Running this learning part was way more problematic than I expected, because of the time consuming reward function: running games takes time, and since there always is a random component in the results of the game, a good reward function should play as many as it can each time.
+For this reason I had to use a smaller population than I would have liked and I had to run fewer generations. The lack of differences in the population after a few generations might have compromised the results of this part.
+Anyway, the reward function seemed to favour agents that prioritize depth of exploration instead of width, and the first and third fixed rules. In the tests run later it can be seen if these parameters make a real difference compared to random ones.
 
-## States cache
+## States cache and RL layer
 The agent algorithm makes use of a cache, like the one used to generate the dataset. This cache is volatile and is used only to avoid repeating the same computations more than once.
 
 But it can be useful to keep in storage another, smaller cache of states, to be used on top of the reward function. The idea is that, since the reward function is an extimate, the agent will indeed make mistakes from time to time. It can be useful to make it learn from them, keeping track of the good and the bad moves it made. 
-The implementation is simple: the agent keep a list of all the moves it makes from the start of the game until the end. Whan the game finish, is uses the final result to compute a reward of its previous choices, and stores it. To reduce space usage, the states are hashed before being inserted.
+This works like a RL layer on top of the existing agent.
+The implementation is simple: the agent keep a list of all the moves it makes from the start of the game until the end. Whan the game finish, is uses the final result to compute a reward of its previous choices, and stores it. 
+To reduce space usage, the states are hashed before being inserted.
+
 During the execution, when the state is present in the cache, the agent uses both this value and the reward function to extimate the reward of the state.
+
+The training of the RL layer has been done making the agent play against itself, against the random player and against limited versions of itself, where some features (like the reward extimate or the cache itself) were deactivated. Making the agent play against less effective adversaries can be useful to find weakness of it: perhaps there are useful moves that the final agent don't see and that less effective agents might stumble upon.
 
 ## Wrapper
 The agent is split into two classes: *QuartoAgent* and *RealAgent*.
 *RealAgent* is the one implementing the algorithm described before, while *QuartoAgent* is a wrapper that converts the state from the format of the Quarto module provided and the format used by my agent.
 
-All the interesting logic is kept in the *RealAgent* class, which execute the MinMax-like algorithm.
+All the interesting logic is kept in the *RealAgent* class.
 
 ## Tests
+Here the results of some tests on the final agent are provided.
+Testing the agent isn't an easy task since we don't have a deterministic agent like we had with Nim. A possible solution is to test it against versions of itself where some features are deactivated. This way it is possible to check if these features actually provide any advantage.
+
+### Agent VS Random Agent
+Most simple test.
+
+### Agent VS blind agent
+If we take our agent and change the learned reward function with a flat one, and remove the RL cache too, what remains is a blind agent that uses beam search without any significant heuristic. 

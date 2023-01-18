@@ -17,8 +17,8 @@ def train_rl_agent():
     TrainRLAgent.train(30)
 
 def main():
-    run_tests()
-    #train_agent_params()
+    #run_tests()
+    train_agent_params()
     #train_agent_params
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ MULTILINE_BLOCK = ((LINES_PRECEDING[len(LINES_PRECEDING)-1] * 6) + 80)
 #Set of fixed rules
 class FixedRules():
     def get_lines(state):
-        mylines = np.array([(False, 0,0) for _ in range(16)]) #(Active, N_Pawns, N_Features)
+        mylines = np.array([(False, 0,0,0,0) for _ in range(16)]) #(Active, N_Pawns, N_Features, Acc, last)
         for index,line in enumerate(LINES):
             count = 0; acc = 15; last = None
             for box in line[0]:
@@ -47,29 +47,27 @@ class FixedRules():
                     last = state[0][box]
             
             if (acc == 0 or count==0):
-                mylines[index] = (False, 0, 0)
+                mylines[index] = (False, 0, 0, 0, 0)
             else:
                 n_ones = 0
                 for bit in str(bin(acc)):
                     if (bit=='1'): n_ones+=1
-                mylines[index] = (True, count, n_ones)
+                mylines[index] = (True, count, n_ones, acc, last)
         return mylines
 
-    def min_active_lines(state):
+    def min_active_lines(state, lines):
         #Higher score if fewer active lines
-        lines = FixedRules.get_lines(state)
         return 15 - len([ l for l in lines if l[0]==False ])
-    def max_active_lines(state):
+    def max_active_lines(state, lines):
         #Higher score if more active lines
-        lines = FixedRules.get_lines(state)
         return len([ l for l in lines if l[0]==False ])
-    def min_n_pawns_biggest_line(state):
+    def min_n_pawns_biggest_line(state, lines):
         #Higher score if line with max number of pawns have fewer
-        line = max(FixedRules.get_lines(state), key=lambda x: x[1])
+        line = max(lines, key=lambda x: x[1])
         return 4 - line[1]
-    def min_common_features(state):
+    def min_common_features(state, lines):
         #Higher score if line with max number of common features have fewer
-        line = max(FixedRules.get_lines(state), key=lambda x: x[2])
+        line = max(lines, key=lambda x: x[2])
         return 4 - line[2]
     def get_function(n):
         if (n==0):
