@@ -50,7 +50,7 @@ def train_de(genomes):
         ind.FIXED_RULE = FixedRules.get_function(ind.FIXED_RULE_N)
         inds.append(ind)
     points = [0 for _ in range(len(genomes))]
-    for i in range(3):
+    for i in range(2):
         print(f"Iteration {i}")
         new_p = value_individuals(inds)
         for i in range(len(genomes)):
@@ -62,10 +62,12 @@ def train_de(genomes):
 
 def train():
     genomes = [
-        {'WIDTHS': [3, 3, 3, 3, 3, 4, 5, 5, 5], 'RULE': 0}, #28
-        {'WIDTHS': [3, 3, 3, 3, 3, 4, 5, 5, 5], 'RULE': 2}, #17
-        {'WIDTHS': [30, 30, 30, 20, 20, 20, 20, 20, 20], 'RULE': 0},
-        {'WIDTHS': [2, 2, 2, 2, 2, 4, 5, 5, 5], 'RULE': 0} #28
+        {'WIDTHS': [3, 3, 3, 3, 3, 4, 5, 5, 5], 'RULE': 2}, 
+        {'WIDTHS': [2, 2, 2, 2, 2, 4, 5, 5, 5], 'RULE': 2},
+        {'WIDTHS': [4, 4, 4, 4, 4, 4, 5, 5, 5], 'RULE': 2},
+        {'WIDTHS': [6, 6, 6, 6, 6, 7, 7, 7, 7], 'RULE': 2},
+        {'WIDTHS': [7, 7, 7, 7, 7, 7, 7, 7, 7], 'RULE': 2},
+        {'WIDTHS': [8, 8, 8, 8, 8, 7, 7, 7, 7], 'RULE': 2},
     ]
     train_de(genomes)
 

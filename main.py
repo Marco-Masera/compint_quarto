@@ -14,12 +14,12 @@ def train_agent_params():
     train()
 
 def train_rl_agent():
-    TrainRLAgent.train(30)
+    TrainRLAgent.train(100)
 
 def main():
     #run_tests()
-    train_agent_params()
-    #train_agent_params
+    #train_agent_params()
+    train_rl_agent()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

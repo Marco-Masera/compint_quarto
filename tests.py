@@ -14,6 +14,7 @@ class RandomPlayer(quarto.Player):
     def place_piece(self) -> tuple[int, int]:
         return random.randint(0, 3), random.randint(0, 3)
 
+
 #Simply test against the random agent
 def test_against_random_agent():
     print("Testing QuartoAgent against random agent")

@@ -68,7 +68,7 @@ class Quarto(object):
         self._current_player = 0
         self.__selected_piece_index = -1
 
-    def setboard(self,board):
+    def setboard(self,board, p = None):
         self._board = board 
         for i in range(0,4):
             for j in range(0,4):
@@ -77,6 +77,8 @@ class Quarto(object):
                     self.binary_board[i,j][:] = piece.binary
                 else:
                     self.binary_board[i,j][:] = [np.nan,np.nan,np.nan,np.nan]
+        if (p!=None):
+            self._current_player = p
 
     def set_players(self, players: tuple[Player, Player]):
         self.__players = players
@@ -104,7 +106,7 @@ class Quarto(object):
             self._board[y, x] = self.__selected_piece_index
             self.binary_board[y,x][:] = self.__pieces[self.__selected_piece_index].binary
             return True
-        print(f"Nope {self._current_player} - {y} {x} - {self._board[y][x]}")
+        #print(f"Nope {self._current_player} - {y} {x} - {self._board[y][x]}")
         return False
 
     def __placeable(self, x: int, y: int) -> bool:
