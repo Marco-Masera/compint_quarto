@@ -14,7 +14,7 @@ def train_agent_params():
     train()
 
 def train_rl_agent():
-    TrainRLAgent.train(100)
+    TrainRLAgent.train(1000)
 
 def main():
     #run_tests()

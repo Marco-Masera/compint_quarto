@@ -14,13 +14,15 @@ class RandomPlayer(quarto.Player):
 class TrainRLAgent:
     def train(iterations):
         random.seed()
-        TrainRLAgent.train_against_random(iterations)
+        #TrainRLAgent.train_against_random_genome(iterations)
         TrainRLAgent.train_against_itself(iterations)
         
 
     def train_against_itself(iterations):
         print("Starting training against itself")
-        for _ in range(iterations):
+        for i in range(iterations):
+            if (i%50==0):
+                print(i)
             game = quarto.Quarto(no_print=True)
             q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = True)
             q1.new_match()
@@ -35,7 +37,7 @@ class TrainRLAgent:
         print(f"Ended training after {iterations} matches")
 
     def train_against_random_genome(iterations):
-        print("Starting training against itself")
+        print("Starting training against random genome")
         for _ in range(int(iterations/2)):
             game = quarto.Quarto(no_print=True)
             q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = True)
@@ -54,6 +56,7 @@ class TrainRLAgent:
             winner = game.run()
             if (winner == 0):
                 q1.end_match(False)
+            print(".")
         print(f"Ended training after {iterations} matches")
             
 
