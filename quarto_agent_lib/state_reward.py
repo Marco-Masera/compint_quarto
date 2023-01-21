@@ -117,7 +117,7 @@ class StateReward:
             if (box==-1): st[0][index] = st[1]
         full, winning = checkState(st[0])
         if (winning):
-            return 120
+            return 200
         return 0
 
     def get_reward_from_truth_value(self,truth_value, state_length):
@@ -133,7 +133,7 @@ class StateReward:
         size = StateReward.count_state_size(state[0])
         full, winning = checkState(state[0])
         if (winning): #player already won
-            return -160
+            return -180
         if (full):
             return 0
         if (size==15):

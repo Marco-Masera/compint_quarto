@@ -1,23 +1,31 @@
-Agente
+Esperimenti:
 
->Aggiungere cache con hash function per memorizzare stati buoni e stati pessimi
+>Disattivare flat pawns e provare ad aumentare depth - vedere cosa performa meglio
 
->Basato su MinMax
->Utilizzo di Reward_Ext 
->Diverse politiche possibili:
-    -Quanti nodi esploro ogni volta? Quanti ne scarto?
-        -Compromesso tra profondità e larghezza
-    -Posso decidere di bloccare l'esplorazione di certi nodi a una certa profondità e di continuare con altri?
-        -Es X nodi per ogni livello - possono discendere tutti anche dallo stesso nodo
-    ->GA (?)
+Params:
+>No flat pawns, 4000 nodes: 32W, 8L, 15MM   -p [3, 3, 3, 3, 3, 4, 6, 6, 5]
+>No flat pawns, 6000 nodes: 37W, 3L, 10MM   -p [3, 3, 3, 3, 3, 4, 6, 6, 5]
+                            33W, 6L, 12MM
+>No flat pawns, 6000 nodes, widths + 1: 33W, 7L, 10MM  -p [4, 4, 4, 4, 4, 5, 6, 6, 5]
 
-    -Quali politiche fino al nodo  5? ->Non posso usare reward
-        ->Sequenze di mosse casuali stile montecarlo search: pericoloso - avversario potrebbe trarne vantaggio
-        ->MinMax completo fino a livello 5? Forse troppo lento
-        ->Learning:
-            -Policies 
-                ->Definire regole tra cui scegliere
-                    -Minimizzare n righe attive
-                    -Massimizzare n righe attive 
-                    -Minimizzare 
-            -Cache di mosse "buone"?
+>No flat pawns, 8000 nodes 32", 8L, 16MM    -p [3, 3, 3, 3, 3, 4, 6, 6, 5]
+                           35W, 5L, 11MM
+>No flat pawns, 8000 nodes   33 7 14            -p [4, 4, 4, 4, 4, 5, 6, 6, 5]
+>No flat pawns, 8000 nodes   35 5 10               -p [6, 6, 6, 6, 5, 7, 6, 6, 5]
+                             35 5 9
+
+
+>Flat pawn, 2000 nodes:    36, 4, 7
+                           35, 5, 12
+
+>No cache: 34 6 11
+
+
+PS C:\Users\Marco\Documents\compint_quarto> python main.py
+Testing QuartoAgent against random agent
+Result: {'victory': 0.9625, 'ties': 0.0125}
+Testing QuartoAgent against itself with random reward genome and no cache (blind agent)
+Result: {'victory': 0.5, 'ties': 0.0}
+Testing QuartoAgent against itself with random reward genome and cache
+Result: {'victory': 0.5, 'ties': 0.0}
+Testing QuartoAgent against itself with cache disabled

@@ -54,7 +54,7 @@ class StatesCache():
 
     def cache_specific_state(self, state, reward):
         if (len(state)>=3):
-            states = states[:2]
+            state = state[:2]
         hashed = StatesCache.hash_state(state)
         if (hashed in self.cache):
             self.cache[hashed] = (self.cache[hashed]+reward)/2
@@ -85,6 +85,7 @@ class StatesCache():
 
 #State = [np_array[chessboard], assigned_pawn, set[remaining])
 class RealAgent():
+    MINMAX_FROM = 9
     #Higher = more precision but slower
     MAX_NODES = 2000
     MIN_WIDTH = 2
@@ -167,8 +168,8 @@ class RealAgent():
         results = []
         for state in states:
             self.N += 1
-            if (self.N % 500 == 0):
-                pass#print(self.N)
+            """if (self.N % 50 == 0):
+                print(self.N)"""
             #Check if winning or full
             full, winning = checkState(state[0])
             if (winning):
@@ -214,12 +215,42 @@ class RealAgent():
             results.append(r)
         return results
 
+    def solve_with_minmax(self,states):
+        valuations = []
+        for state in states:
+            available = list(set( [x for x in range(16)]) - set(state[0]) - set([state[1],]) )
+            full, winning = checkState(state[0])
+            if (winning):
+                valuations.append(-100)
+                continue
+            if (full):
+                valuations.append(0)
+                continue 
+
+            best_p = 1000
+            for i in range(len(state[0])):
+                if (state[0][i]!=-1 or best_p==-100):
+                    continue 
+                for p in available:
+                    copied = deepcopy(state)
+                    copied[0][i] = state[1] 
+                    copied[1] = p
+                    result = self.solve_with_minmax([copied])[0]
+                    if (result < best_p):
+                        best_p = result 
+                    if (best_p == -100):
+                        break
+            valuations.append(-best_p)
+        return valuations
+
     def solve_states(self, states, initial_depth = None):
         states_depth = StateReward.count_state_size(states[0][0])
         if (initial_depth == None):
             initial_depth = states_depth
         if (states_depth < 5):
             return self.solve_with_fixed_rules(states)
+        if (states_depth >= RealAgent.MINMAX_FROM):
+            return self.solve_with_minmax(states)
 
         #Collapse 
         collapsed_states = []
@@ -257,7 +288,7 @@ class QuartoAgent(quarto.Player):
         self.save_states = save_states
 
     def get_agent(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
-        return QuartoAgent(quarto, realAgent=RealAgent(), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)
+        return QuartoAgent(quarto, realAgent=RealAgent(use_debug_random_reward=debug_use_random_reward), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)
 
     def get_agent_random_genome(quarto: quarto.Quarto, use_cache = True, save_states = False, debug_use_random_reward = False):
         return QuartoAgent(quarto, realAgent=RealAgent(random_genome=True, use_debug_random_reward=debug_use_random_reward), use_cache = use_cache, save_states=save_states, debug_use_random_reward=debug_use_random_reward)
@@ -267,7 +298,8 @@ class QuartoAgent(quarto.Player):
         return QuartoAgent(quarto, real_agent, use_cache, save_states, debug_use_random_reward)
 
     def new_match(self):
-        self.st_cache.new_match()
+        if (self.st_cache):
+            self.st_cache.new_match()
     def end_match(self, you_won):
         self.st_cache.set_last_state(you_won)
         self.st_cache.save_cache()

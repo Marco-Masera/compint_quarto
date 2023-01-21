@@ -70,13 +70,10 @@ class MinMaxPlayer(quarto.Player):
 
 def run():
     game = quarto.Quarto(no_print=True)
-    q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = True)
-    q1.new_match()
+    q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
     q2 = MinMaxPlayer(game)
-    game.set_players((q1, q2))
+    game.set_players((q2, q1))
     winner = game.run()
-    if (winner==1):
-        q1.end_match(False)
     return (winner, q2.used_mm)
 
 def main():
@@ -89,6 +86,6 @@ def main():
             wins_2 += 1
         if (r[1]==True):
             mm_uses += 1
-        print(r)
+        print(f"{r} - {i}")
     print(wins_1); print(wins_2); print(mm_uses)
 main()
