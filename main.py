@@ -1,20 +1,19 @@
 import logging
 import argparse
-import random
-import quarto
 from quarto_agent import QuartoAgent
 from tests import TestAgent
 from train_agent_params import train
 from train_rl_agent import TrainRLAgent
 
 def run_tests():
-    TestAgent.run_test(80)
+    TestAgent.run_test(30)
 
 def train_agent_params():
     train()
 
 def train_rl_agent():
     TrainRLAgent.train(1000)
+
 
 def main():
     run_tests()

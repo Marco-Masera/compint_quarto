@@ -177,16 +177,7 @@ Results after 50 games:
 * **Ties**: 1.25%
 * **Loses**: 2.5%
 Comment:
-The win rate against random is very high; although 2 times it was able to beat the agent.
-
-### Agent VS Blind Agent
-If we take our agent and change the learned reward function with a flat one, and remove the RL cache too, what remains is a blind agent that uses beam search without any significant heuristic. The blind agent should perform not too bad as it can still visit many different nodes at each move, but it's more subject to randomness.
-Results after 80 games:
-* **Victories**: 61.25%
-* **Ties**: 5%
-* **Loses**: 33.75%
-Comment:
-The winning rate is lower than what I expected; this result one one hand shows that the reward function used as heuristic for beam search is working, on the other shows that it's not so powerful to beat almost all the time an adversary that simply visits many random possible sequences of moves.
+The win rate against random is very high.
 
 ### Agent VS MinMax from depth 9
 A pure MinMax agent is not possible for Quarto, because of the number of possible states. But a MinMax agent can be used for states with a certain depth, since the number of moves becomes less and less numerous.
@@ -200,17 +191,32 @@ Results after 80 games:
 * **Loses**: 10.3%
 * **Depth 9 reached**: 23.7% of times.
 Comment:
-It is interesting to see that almost 80% of times the adversary was not able to reach the required depth to activate MinMax. This shows that the agent is able to use the heuristic effectively to win as soon as possible. 
+It is interesting to see that almost 80% of times the adversary was not able to reach the required depth to activate MinMax.
 A few times the depth was reached but the agent won anyway, showing that it can find states where it is impossible for the adversary to win (since MinMax is deterministic and if there is a chance of winning, it wins).
-That said the adversary has a 10.3% win rate against the agent. That means, 10.3% of times the agent got to the state with size 9 in an unfavourable position from the MinMax point of view.
+That said the adversary has a 10.3% win rate against the agent. That means, 10.3% of times the agent got to the state with size 9 in an unfavourable position and MinMax of course took advantage of that.
+
+### Agent VS Semi-Blind Agent
+If we take our agent and change the learned reward function with a flat one, and remove the RL cache too, what remains is a Semi-Blind Agent that uses beam search without any significant heuristic. The agent still have some useful features: the reward function, while initialized with random parameters, it can still detect states one move away from a final one; and it still uses MinMax for states with at least 9 pawns in it.
+
+Results after 80 games:
+* **Victories**: 61.25%
+* **Ties**: 5%
+* **Loses**: 33.75%
+Comment:
+The winning rate is lower than what I expected; this result on one hand shows that the reward function used as heuristic for beam search is working, on the other it shows that it's not so powerful to beat almost all the time the adversary. The usage of simple beam-search + MinMax from states with size 9 is enough to beat my agent 33.75% of times.
+
 
 ### Agent VS Random Parameters Agent
-This tests shows if the WIDTH vs DEPTH parameters found with GA makes any difference. The agent plays against a set of agents where these parameters are random generated.
+This tests shows if the WIDTH vs DEPTH parameters found with GA make any difference. The agent plays against an agents where these parameters are random generated. All the other features are the same.
+
 
 # Iusses and final considerations
 I'm happy with the results of this agent, and I'm amazed that a simple hill climbing could find an useful heuristics for the beam search.
 There still are some iusses with this project:
 * **Slowness of the collapse state function**: this function is incredibly time consuming and force the final agent to visit way fewer states than it could have without it. With more time I'd like to have experimented removing it and seeing if it does actually help general performances.
 * **WIDTH and DEPTH parameters may not be the best**: since they are found by GA and since the algorithm to find them was very slow, they may not be the best choice.
-* **The dataset used to train the reward function**: it probably needed more states, and most importantly more negative states to be recognized. With more time the heuristic could have been improved much.
-* **Beam search might be too simple**: the beam search have one iusse: at each node it chooses N promising children to be visited, and it cannot backtrack and change its decision once taken. This can be a iusse: a child can look promising using the heuristic function, but it is possible that visiting its branches it comes clear that the function missclassified it. Keeping visiting these branches is a waste of resources, since the agent has a fixed number of nodes it is allowed to visit in each move (2000).
+* **The dataset used to train the reward function**: it probably needed more states, and most importantly more negative states to be recognized
+* **Beam search might be too simple**: the beam search by itself is simple, at each node it chooses N promising children to be visited, and it cannot backtrack and change its decision once taken. This can be a iusse: a child can look promising using the heuristic function, but it is possible that visiting its branches it comes clear that the function misclassified it. Keeping visiting these branches is a waste of resources, since the agent has a fixed number of nodes it is allowed to visit in each move (2000). A more advanced algorithm could choose to give up visiting some branches and use the extra time available to visit other nodes.
+
+## Usage
+Todo

@@ -29,3 +29,6 @@ Result: {'victory': 0.5, 'ties': 0.0}
 Testing QuartoAgent against itself with random reward genome and cache
 Result: {'victory': 0.5, 'ties': 0.0}
 Testing QuartoAgent against itself with cache disabled
+
+
+{"WIDTHS":[3, 3, 3, 3, 3, 4, 6, 6, 5], "RULE": 2}

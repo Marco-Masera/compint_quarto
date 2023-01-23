@@ -342,6 +342,7 @@ class QuartoAgent(quarto.Player):
                     board[i][j] = -1
     
         solved = self.realAgent.solve_states(states)
+        print(f"Best move: {min(solved)}")
         index = solved.index(min(solved))
         move = moves[index]
         

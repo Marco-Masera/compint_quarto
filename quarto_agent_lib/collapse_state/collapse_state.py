@@ -119,8 +119,9 @@ def flat_pawns(state, pawn):
         return elems[0][state_length]
     return None
 
-def collapse(state, pawn):
-    pawn = flat_pawns(state, pawn)
+def collapse(state, pawn, skip_pawns = False):
+    if (not skip_pawns):
+        pawn = flat_pawns(state, pawn)
     states = []
     s1 = state; s2 = flip_v(state)
     states.append(s1)

@@ -108,7 +108,7 @@ class StateReward:
     def count_state_size(state):
         c = 0
         for i in state: 
-            if i>-1: c+=1;
+            if i>-1: c+=1
         return c
     
     def solve_last_move(self,state):
