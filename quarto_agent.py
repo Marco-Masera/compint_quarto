@@ -298,11 +298,14 @@ class QuartoAgent(quarto.Player):
         return QuartoAgent(quarto, real_agent, use_cache, save_states, debug_use_random_reward)
 
     def new_match(self):
-        if (self.st_cache):
-            self.st_cache.new_match()
+        self.moves = []
+        """if (self.st_cache):
+            self.st_cache.new_match()"""
     def end_match(self, you_won):
-        self.st_cache.set_last_state(you_won)
-        self.st_cache.save_cache()
+        for el in self.moves:
+            print(el)
+        """self.st_cache.set_last_state(you_won)
+        self.st_cache.save_cache()"""
 
     def choose_piece(self) -> int:
         if (self.chosen_piece!=None):
@@ -342,14 +345,12 @@ class QuartoAgent(quarto.Player):
                     board[i][j] = -1
     
         solved = self.realAgent.solve_states(states)
-        print(f"Best move: {min(solved)}")
-        index = solved.index(min(solved))
-        move = moves[index]
+        best = min(solved)
+        move = moves[best[1]]
         
-        if (self.save_states):
-            self.st_cache.add_state(states[index])
-
+        print(f"Making move - expected reward: {best[0]}")
         self.chosen_piece = move[2]
+        self.moves.append( f"Reward: {best[0]}" )
         return (move[1],move[0])
 
     def convert_state_format(self, board, assigned_pawn):

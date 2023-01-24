@@ -37,6 +37,7 @@ class TestAgent():
         for i in range(iterations):
             game = quarto.Quarto(no_print=True)
             q1 = QuartoAgent.get_agent_custom_realagent(game, RealAgent2(),False, False)
+            q1.new_match()
             q2 = RandomPlayer(game)
             game.set_players((q1, q2))
             winner = game.run()
@@ -49,7 +50,7 @@ class TestAgent():
         wins = 0
         ties = 0
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto(no_print=False)
             q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
             q2 = RandomPlayer(game)
             game.set_players((q1, q2))
@@ -109,7 +110,7 @@ class TestAgent():
         wins = 0
         ties = 0
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto(no_print=False)
             q1 = QuartoAgent.get_agent(game, use_cache = True, save_states = False)
             q2 = QuartoAgent.get_agent(game, use_cache = False, save_states = False, debug_use_random_reward=False)
             game.set_players((q1, q2))

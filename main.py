@@ -6,7 +6,7 @@ from train_agent_params import train
 from train_rl_agent import TrainRLAgent
 
 def run_tests():
-    TestAgent.run_test(30)
+    TestAgent.run_test(50)
 
 def train_agent_params():
     train()
