@@ -1,7 +1,7 @@
 import random
 import quarto
 from quarto_agent import QuartoAgent
-from realagent2 import QuartoRealAgent2
+from RealAgent2 import QuartoRealAgent2
 
 class RandomPlayer(quarto.Player):
     """Random player"""

@@ -254,7 +254,7 @@ class QuartoRealAgent():
         if (QuartoRealAgent.MAX_NODES[states_depth] != -1 and len(states)>QuartoRealAgent.MAX_NODES[states_depth]):
             states = self.prune(states, QuartoRealAgent.MAX_NODES[states_depth], states_depth)
         
-        x = self.solve_with_minmax(states, QuartoRealAgent.DEPTHS[states_depth], QuartoRealAgent.MAX_NODES[states_depth],QuartoRealAgent.MAX_EVALS[states_depth], states_depth, 0)
+        x =  self.solve_with_minmax(states, QuartoRealAgent.DEPTHS[states_depth], QuartoRealAgent.MAX_NODES[states_depth],QuartoRealAgent.MAX_EVALS[states_depth], states_depth, 0)
         exit()
     def __lt__(self, other):
         return False
