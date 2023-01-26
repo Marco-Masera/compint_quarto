@@ -5,8 +5,6 @@ from quarto_utils import checkState
 
 #This class handles the pre-processing of the datasets stored in dataset/raw
 
-
-
 class PreProcessDataset:
     MAX_SIZE = 1000
     PROCESSED_TARGET = "dataset/pre_processed/training_dataset_v2.json"

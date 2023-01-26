@@ -2,23 +2,16 @@ import logging
 import argparse
 from quarto_agent import QuartoAgent
 from tests import TestAgent
-from train_agent_params import train
-from train_rl_agent import TrainRLAgent
+
 
 def run_tests():
-    TestAgent.run_test(30)
+    TestAgent.run_test(4)
 
-def train_agent_params():
-    train()
-
-def train_rl_agent():
-    TrainRLAgent.train(1000)
-
+def get_agent(game):
+    return QuartoAgent(game)
 
 def main():
     run_tests()
-    #train_agent_params()
-    #train_rl_agent()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -60,9 +60,9 @@ pawns = dict()
 for i in range(0, 16):
     p = dict()
     p[0] = set([~(i)& 15]) #Negation
-    p[1] = set([(~(i) ^ (1<<x)) & 15 for x in range(0,4)]) #1 element in common -> nego e faccio lo switch di 1 bit tra 0..3
-    p[3] = set([((i) ^ (1<<x)) & 15 for x in range(0,4)])  #3 elements in common -> Switch di un bit tra 0..3
-    p[2] = set([(i) ^ (x) & 15 for x in [3, 5, 6, 9, 10, 12]]) #Due elementi comuni e due negati -> Switch di bit 0011,0101,0110,1001,1010,1100
+    p[1] = set([(~(i) ^ (1<<x)) & 15 for x in range(0,4)]) #1 element in common -> negate and then switch 1 bit in 0..3
+    p[3] = set([((i) ^ (1<<x)) & 15 for x in range(0,4)])  #3 elements in common -> switch 1 bit in 0..3
+    p[2] = set([(i) ^ (x) & 15 for x in [3, 5, 6, 9, 10, 12]]) #2 elements in common -> Switch  0011,0101,0110,1001,1010,1100
     p[4] = set() #No other pawn is equal
     pawns[i] = p
 

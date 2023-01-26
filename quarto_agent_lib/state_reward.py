@@ -2,11 +2,11 @@ import numpy as np
 import json
 import random
 import copy
-from quarto_agent_lib.quarto_utils import checkState, bits_in_common_multiple
+from quarto_agent_lib.quarto_utils import checkState
 
-#Init some static stuff to calculate the feature faster during runtime
+#Init some static stuff to calculate the features faster during runtime
 LINES = [
-    # ( (caselle),[(quale_riga_tocca, casella )])
+    # ( (caselle),[(quale_riga_tocca, in quale casella )])
     ((0, 1, 3, 6), [] ),   #0
     ((2, 4, 7, 10), []),      #1
     ((5,8, 11, 13), []),      #2
@@ -17,6 +17,17 @@ LINES = [
     ((0, 2, 5, 9), []),       #7
     ((6, 7, 8, 9), []),       #8
     ((0, 4, 11, 15), [])]     #9
+
+LINES_REVERSED = [] 
+for i in range(16):
+    l = []
+    for index, line in enumerate(LINES):
+        for box in line[0]:
+            if (i == box):
+                l.append(index)
+                break
+    LINES_REVERSED.append(l)
+
 LINES_PRECEDING = np.array([0 for _ in range(16)])
 count_ = 0
 for index,line in enumerate(LINES):
@@ -33,58 +44,10 @@ for index,line in enumerate(LINES):
 LINES_PRECEDING[len(LINES_PRECEDING)-1] = count_
 MULTILINE_BLOCK = ((LINES_PRECEDING[len(LINES_PRECEDING)-1] * 6) + 80)
 
-#Set of fixed rules
-class FixedRules():
-    def get_lines(state):
-        mylines = np.array([(False, 0,0,0,0) for _ in range(16)]) #(Active, N_Pawns, N_Features, Acc, last)
-        for index,line in enumerate(LINES):
-            count = 0; acc = 15; last = None
-            for box in line[0]:
-                if (state[0][box]!=-1):
-                    count += 1
-                    if (last != None):
-                        acc = acc & (~(state[0][box] ^ last))
-                    last = state[0][box]
-            
-            if (acc == 0 or count==0):
-                mylines[index] = (False, 0, 0, 0, 0)
-            else:
-                n_ones = 0
-                for bit in str(bin(acc)):
-                    if (bit=='1'): n_ones+=1
-                mylines[index] = (True, count, n_ones, acc, last)
-        return mylines
-
-    def min_active_lines(state, lines):
-        #Higher score if fewer active lines
-        return 15 - len([ l for l in lines if l[0]==False ])
-    def max_active_lines(state, lines):
-        #Higher score if more active lines
-        return len([ l for l in lines if l[0]==False ])
-    def min_n_pawns_biggest_line(state, lines):
-        #Higher score if line with max number of pawns have fewer
-        line = max(lines, key=lambda x: x[1])
-        return 4 - line[1]
-    def min_common_features(state, lines):
-        #Higher score if line with max number of common features have fewer
-        line = max(lines, key=lambda x: x[2])
-        return 4 - line[2]
-    def get_function(n):
-        if (n==0):
-            return FixedRules.min_active_lines
-        if (n==1):
-            return FixedRules.max_active_lines
-        if (n==2):
-            return FixedRules.min_n_pawns_biggest_line
-        if (n==3):
-            return FixedRules.min_common_features
-
 
 class StateReward:
     MIN_SIZE = 5
     state_length = (MULTILINE_BLOCK)*2
-    #Process state is used to convert the raw state from the agent to the format used to compute the function
-    #return [[chessboard], assigned_pawn, set[remaining], {reward} ]
     def process_state_for_dataset(state):
         return [state[0][0], state[0][1], list(set([x for x in range(16)]) - set(state[0][0]) - set([state[0][1]]) ), state[1]]
 
@@ -117,7 +80,7 @@ class StateReward:
             if (box==-1): st[0][index] = st[1]
         full, winning = checkState(st[0])
         if (winning):
-            return 200
+            return 180
         return 0
 
     def get_reward_from_truth_value(self,truth_value, state_length):
@@ -127,15 +90,33 @@ class StateReward:
         else:
             return max(-140, reward)
 
-    def get_reward(self, state): #State = ([chessboard], assigned_pawn, set[remaining])
+    def update_lines(self, state, mylines, index_):
         global LINES; global LINES_PRECEDING; global MULTILINE_BLOCK;
+        chessboard = state[0]
+        #Updates only the changed line
+        for changed in LINES_REVERSED[index_]:
+            count = 0; acc = 15; last = None
+            for box in LINES[changed][0]:
+                if (chessboard[box]!=-1):
+                    count += 1
+                    if (last != None):
+                        acc = acc & (~(chessboard[box] ^ last))
+                    last = chessboard[box]
+            #updates single line
+            active = acc!=0
+            if (not active):
+                last = 0
+            elif (last==None):
+                last = -1
+            mylines[changed] = (active, acc, last, count)
+        return mylines
 
-        size = StateReward.count_state_size(state[0])
-        full, winning = checkState(state[0])
-        if (winning): #player already won
-            return -180
-        if (full):
-            return 0
+
+    def get_reward(self, state, size = None): #State = ([chessboard], assigned_pawn, set[remaining])
+        global LINES; global LINES_PRECEDING; global MULTILINE_BLOCK;
+        
+        if (size == None):
+            size = StateReward.count_state_size(state[0])  
         if (size==15):
             return self.solve_last_move(state)
         if (size < StateReward.MIN_SIZE):
@@ -143,8 +124,10 @@ class StateReward:
             
         genome = self.genome[size]
         chessboard = state[0]
-        mylines = np.array([(False, 0,0) for _ in range(16)])
+        
+        mylines = []
         self.truth_value = np.array([0 for _ in range(StateReward.state_length)])
+        not_full = False
         #mylines = [] -> (Active, acc)
         for index,line in enumerate(LINES):
             count = 0; acc = 15; last = None
@@ -154,14 +137,30 @@ class StateReward:
                     if (last != None):
                         acc = acc & (~(chessboard[box] ^ last))
                     last = chessboard[box]
-            
+            if (count < 4):
+                not_full = True
             if (acc == 0):
-                mylines[index] = (False, acc, 0)
-                continue 
+                mylines.append((False, acc, 0, count))
+                continue
+            if (count==4):
+                #I already lost
+                return -180
+            if (last==None):
+                last = -1
+            mylines.append((True, acc, last, count))
+        mylines = np.array(mylines)
+        if (not_full==False):
+            return 0 #Tie
+        
+        for index,line in enumerate(LINES):
+            active, acc, last, count = mylines[index]
             #can extend, can block -> computed from pawn
             if (state[1]!=None):
                 if (count != 0 and acc & (~(state[1] ^ last))):#(can_extend):
                     self.truth_value[(index*8) + count] = 1
+                    if (count==3):
+                        #If a line has 3 pawns and I can extend it, I won
+                        return 180
                 else: # (can_block):
                     self.truth_value[(index*8) + count + 4] = 1
 
@@ -178,53 +177,51 @@ class StateReward:
                 self.truth_value[MULTILINE_BLOCK + (index*8) + count] = 1
             elif (one_blocking):
                 self.truth_value[MULTILINE_BLOCK + (index*8) + count + 4] = 1
-            #updates single line
-            if (last==None):
-                last = -1
-            mylines[index] = (True, acc, last)
+
         #Second round - line x connected lines
         for index,line in enumerate(LINES):
             if (mylines[index][0] == False): continue
+            inx = 80 + (LINES_PRECEDING[index] * 6)
             for common in line[1]:
-                if (mylines[common[0]][0] == False): continue
-                if (chessboard[common[1]] != -1): continue 
-
+                if (mylines[common[0]][0] == False or chessboard[common[1]] != -1): continue
                 #Checks if can block both, increase both, or one and one
                 acc = mylines[index][1]; acc2 = mylines[common[0]][1]
                 if (state[1]!=None):
                     can_extend_one = (acc & (~(state[1] ^ mylines[index][2])))!=0
                     can_extend_two = (acc2 & (~(state[1] ^ mylines[common[0]][2])))!=0
                     if (can_extend_one and can_extend_two):
-                        self.truth_value[80 + (LINES_PRECEDING[index] * 6)] = 1
+                        self.truth_value[inx] = 1
                     elif (can_extend_one != can_extend_two):
-                        self.truth_value[80 + (LINES_PRECEDING[index] * 6) + 1] = 2
+                        self.truth_value[inx + 1] = 2
                     else:
-                        self.truth_value[80 + (LINES_PRECEDING[index] * 6) + 2] = 3
+                        self.truth_value[inx + 2] = 3
                 #Check if i can block the adversary and if he can block me
                 canEO = 0; canBO = 0; canM = 0
+                inx = 80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6)
                 for pawn in state[2]:
                     can_extend_one = (acc & (~(pawn ^ mylines[index][2])))!=0
                     can_extend_two = (acc2 & (~(pawn ^ mylines[common[0]][2])))!=0
                     if (can_extend_one and can_extend_two):
                         canEO += 1
                         if (canEO==1):
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6)] = 1
+                            self.truth_value[inx] = 1
                         else:
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6) + 3] = 1
+                            self.truth_value[inx + 3] = 1
                     elif (can_extend_one != can_extend_two):
                         canBO += 1
                         if (canBO==1):
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6) + 1] = 1
+                            self.truth_value[inx + 1] = 1
                         else:
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6) + 4] = 1
+                            self.truth_value[inx + 4] = 1
                     else:
                         canM += 1
                         if (canM==1):
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6) + 2] = 1
+                            self.truth_value[inx + 2] = 1
                         else:
-                            self.truth_value[80 + MULTILINE_BLOCK + (LINES_PRECEDING[index] * 6) + 5] = 1
+                            self.truth_value[inx + 5] = 1
                     if (canEO >= 2 and canBO >= 2 and canM >= 2): break
 
+        self.last_lines = mylines
         reward = np.matmul(genome,self.truth_value)
         if (reward > 0):
             return min(reward,140)
@@ -249,12 +246,14 @@ class StateReward:
 
 
 
-#The following code handles the learning part
-STATES = [] # [ [chessboard], pawn, [remaining], real_reward ]
+
+###   The following code handles the learning part
+
+STATES = [] 
 VALIDATION_STATES = []
 SAMPLE_TARGET = 8
-LENGTHS_TO_TRAIN = ["6","8","9","10",  "11","12","13","15"]
-#Hill climber
+LENGTHS_TO_TRAIN = ["6","8","9","10", "11","12","13","15"]
+
 class Climber:
     def __init__(self):
         self.individual = StateReward(genome=StateReward.load_genome())
@@ -378,8 +377,7 @@ def load_data():
             else:
                 VALIDATION_STATES[size_] = states_2[size_]
 
-            
-#
+        
 def climb():
     load_data()
     generation = 2
