@@ -7,6 +7,7 @@ from quarto_agent_lib.quarto_utils import checkState
 #Init some static stuff to calculate the features faster during runtime
 LINES = [
     # ( (caselle),[(quale_riga_tocca, in quale casella )])
+    # ( (caselle),[(quale_riga_tocca, in quale casella )])
     ((0, 1, 3, 6), [] ),   #0
     ((2, 4, 7, 10), []),      #1
     ((5,8, 11, 13), []),      #2

@@ -45,9 +45,6 @@ class QuartoRealAgent2():
     DEPTHS =         [0]*4 + [3 for _ in range(5)] + [13]*7 
     MAX_NODES =      [0]*4 + [6 for _ in range(5)] + [-1]*7 
     MAX_EVALS =      [0]*4 + [80 for _ in range(5)] + [-1]*7 
-    """DEPTHS =         [0]*4 + [4 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [4 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [80 for _ in range(5)] + [-1]*7 """
 
     def __init__(self, skip_rl_layer = False, random_reward_function = False):
         self.cache = dict()
