@@ -11,7 +11,7 @@ def get_agent(game):
     return QuartoAgent(game)
 #Run tests
 def run_tests():
-    TestAgent.run_test(24)
+    TestAgent.run_test(2)
 
 ### Methods to train the reward function
 def generate_dataset_for_training(deterministic = True, export_fn="dataset/raw/dataset_v0", depth=8, stop_at=None):

@@ -63,7 +63,6 @@ class QuartoRealAgent():
         self.DEPTHS = params["DEPTHS"]
         self.MAX_NODES = params["MAX_NODES"]
         self.MAX_EVALS = params["MAX_EVALS"]
-        self.n_eval = 0 #DEBUG PARAMS
         self.random_reward_function = random_reward_function
 
     def save_cache(self):
@@ -166,16 +165,14 @@ class QuartoRealAgent():
                             cached = self.check_cache(copied, False)
                             if (not cached is None):
                                 children.append((cached, copied))
-                    #radical pruning: only states with extimated reward < 0 are visited
                     else:
-                        if ((len(children) < max_eval)): 
-                            self.n_eval += 1
+                        #radical pruning: only states with extimated reward < 0 are visited
+                        if ((len(children) < max_eval)):
                             copied = [np.array(state[0]), p]
                             copied[0][i] = state[1] 
                             ext = self.check_cache([copied[0],copied[1]])
                             if (ext is None):
                                 ext = self.reward_extimator.get_reward([copied[0],copied[1], list( available_new - set( [copied[1],]))], size=size+1)
-                                #DEBUG
                                 if (self.random_reward_function==True and ext!=-180):
                                     ext = random.randint(-15,5)
                             avg_reward += ext 
