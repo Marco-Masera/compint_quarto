@@ -1,4 +1,3 @@
-import time
 #Collection of utils 
 
 diagonals=[(0, 1, 3, 6), (2, 4, 7, 10), (5,8, 11, 13), (9, 12, 14, 15),

@@ -1,13 +1,11 @@
 import numpy as np
 import json
 import random
-from collapse_state.collapse_state import collapse
-from quarto_utils import checkState
-from state_reward import StateReward
+from quarto_agent_lib.collapse_state.collapse_state import collapse
+from quarto_agent_lib.quarto_utils import checkState
+from quarto_agent_lib.state_reward import StateReward
 
 export_file = "dataset/raw/dataset_v0_"
-DEPTH = 11
-STOP_AT = 10 #Anche 10
 MAX_BEFORE_DISCARD = 8000000
 
 cache = None 
@@ -195,7 +193,7 @@ def generate_one(depth, iteration, deterministic = True, stop_at = None, reward_
     initial_state = []
     all_pawns = set([x for x in range(0,15)])
     for _ in range(16-depth):
-        pawn = random.sample(all_pawns, 1)[0]
+        pawn = random.sample(list(all_pawns), 1)[0]
         all_pawns.remove(pawn)
         initial_state.append(pawn)
     for i in range(0, depth):
@@ -226,20 +224,18 @@ def generate_one(depth, iteration, deterministic = True, stop_at = None, reward_
     print(f"Iteration {iteration} succeeded")
 
 
-def generate_dataset(depth):
-    global cache; global num
+def generate_dataset(export_fn, depth=8):
+    global cache; global num; global export_file
+    export_file = export_fn
     cache = dict()
     random.seed()
     for i in range(5):
         generate_one(depth, i)
 
-def generate_dataset_undeterministic(depth):
-    global cache; global num
+def generate_dataset_undeterministic(export_fn, depth, stop_at):
+    global cache; global num; global export_file
+    export_file = export_fn
     cache = dict()
     random.seed()
     for i in range(5):
-        generate_one(depth, i, False, STOP_AT, StateReward(StateReward.load_genome()))
-
-
-    
-generate_dataset_undeterministic(DEPTH)
+        generate_one(depth, i, False, stop_at, StateReward(StateReward.load_genome()))
