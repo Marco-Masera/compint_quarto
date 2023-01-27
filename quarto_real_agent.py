@@ -42,36 +42,12 @@ class FixedRules():
 
 class QuartoRealAgent():
     #Agent static params
-    #DEPTHS =         [0]*4 + [4 for _ in range(5)] + [13]*7 
-    #MAX_NODES =      [0]*4 + [4 for _ in range(5)] + [-1]*7 
-    #MAX_EVALS =      [0]*4 + [140 for _ in range(5)] + [-1]*7 
+    def get_default_params():
+        return {"DEPTHS" :         [0]*4 + [4 for _ in range(5)] + [13]*7, #!!!
+                "MAX_NODES" :      [0]*4 + [5 for _ in range(5)] + [-1]*7, 
+                "MAX_EVALS" :      [0]*4 + [28 for _ in range(5)] + [-1]*7}
 
-    DEPTHS =         [0]*4 + [5 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [3 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [150 for _ in range(5)] + [-1]*7 
-    #To be avaluated
-    """
-    DEPTHS =         [0]*4 + [5 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [3 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [150 for _ in range(5)] + [-1]*7 
-
-    DEPTHS =         [0]*4 + [2 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [13 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [100 for _ in range(5)] + [-1]*7 
-
-    DEPTHS =         [0]*4 + [3 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [7 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [15 for _ in range(5)] + [-1]*7 
-
-    DEPTHS =         [0]*4 + [3 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [6 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [120 for _ in range(5)] + [-1]*7 
-
-    DEPTHS =         [0]*4 + [4 for _ in range(5)] + [13]*7 
-    MAX_NODES =      [0]*4 + [5 for _ in range(5)] + [-1]*7 
-    MAX_EVALS =      [0]*4 + [15 for _ in range(5)] + [-1]*7 """
-
-    def __init__(self, skip_rl_layer = False, random_reward_function = False):
+    def __init__(self, params = None, skip_rl_layer = False, random_reward_function = False):
         self.cache = dict()
         if (random_reward_function==True):
             self.reward_extimator = StateReward()
@@ -82,6 +58,13 @@ class QuartoRealAgent():
             self.perm_cache = dict()
         else:
             self.perm_cache = QuartoRealAgent.load_cache()
+        if (params==None):
+            params = QuartoRealAgent.get_default_params()
+        self.DEPTHS = params["DEPTHS"]
+        self.MAX_NODES = params["MAX_NODES"]
+        self.MAX_EVALS = params["MAX_EVALS"]
+        self.n_eval = 0 #DEBUG PARAMS
+        self.random_reward_function = random_reward_function
 
     def save_cache(self):
         if (self.skip_rl_layer==True):
@@ -185,12 +168,16 @@ class QuartoRealAgent():
                                 children.append((cached, copied))
                     #radical pruning: only states with extimated reward < 0 are visited
                     else:
-                        if ((len(children) < max_eval)): #Changed here
+                        if ((len(children) < max_eval)): 
+                            self.n_eval += 1
                             copied = [np.array(state[0]), p]
                             copied[0][i] = state[1] 
                             ext = self.check_cache([copied[0],copied[1]])
                             if (ext is None):
                                 ext = self.reward_extimator.get_reward([copied[0],copied[1], list( available_new - set( [copied[1],]))], size=size+1)
+                                #DEBUG
+                                if (self.random_reward_function==True and ext!=-180):
+                                    ext = random.randint(-15,5)
                             avg_reward += ext 
                             n_values += 1
                             if (ext < best_extimate):
@@ -251,10 +238,10 @@ class QuartoRealAgent():
             random.shuffle(x)
             return x
 
-        if (QuartoRealAgent.MAX_NODES[states_depth] != -1 and len(states)>QuartoRealAgent.MAX_NODES[states_depth]):
-            states = self.prune(states, QuartoRealAgent.MAX_NODES[states_depth], states_depth)
+        if (self.MAX_NODES[states_depth] != -1 and len(states)>self.MAX_NODES[states_depth]):
+            states = self.prune(states, self.MAX_NODES[states_depth], states_depth)
         
-        x =  self.solve_with_minmax(states, QuartoRealAgent.DEPTHS[states_depth], QuartoRealAgent.MAX_NODES[states_depth],QuartoRealAgent.MAX_EVALS[states_depth], states_depth, 0)
+        return self.solve_with_minmax(states, self.DEPTHS[states_depth], self.MAX_NODES[states_depth],self.MAX_EVALS[states_depth], states_depth, 0)
         exit()
     def __lt__(self, other):
         return False

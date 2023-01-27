@@ -164,22 +164,26 @@ Poor random agent.
 Since the game has been solved and it showed that the first player, if it plays its moves right, always wins, it makes sense to try to make the agent fight with itself to see how often the one starting the game wins.
 
 Results:
+**Player 2 always win**
 
 
 ### Agent VS Semi-Blind Agent
 If we take our agent and change the learned reward function weights with random ones, and remove the RL cache too, what remains is a Semi-Blind Agent that uses beam search without any significant heuristic. The agent still have some useful features: the reward function, while initialized with random parameters, can still detect states one move away from a victory/defeat; and it still uses MinMax for states with at least 9 pawns in it.
 
-### Agent VS Cache Only Agent
-If we use the random weight for the reward function but leave the RL cache on, how will it perform?
+* **Agent winning rate**: 43%
+* **Blind agent winning rate**: 26%
+* **Ties**: 31%
 
-### Agent VS No Reward Function Only
-If we remove the RL cache and use the final reward function on, how will it perform?
+### Agent VS No Cache
+Results:
+**Player 2 always win**
 
 
 # Iusses and final considerations
 I'm happy with the results of this agent, and I'm amazed that a simple hill climbing could find an useful heuristics for the beam search.
 There still are some iusses with this project:
 * **Slowness of the collapse state function**: this function is incredibly time consuming, and this forced me to abandon it in the final agent. It is a shame because it would have made caching and the RL layer much more efficient.
+* **The reward function**: it was meant to be a *guide* for the exploration, giving an advantage over a blind exploration. To some extent it does this, but it is weaker than I'd have liked. There surely are better ways to train a function toward this goal.
 * **The dataset used to train the reward function**: it probably needed more states, and most importantly more negative states to be recognized
 * **Beam search might be too simple**: the beam search by itself is simple, at each node it chooses N promising children to be visited, and it cannot backtrack and change its decision once taken. This can be a iusse: a child can look promising using the heuristic function, but it is possible that visiting its branches it comes clear that the function misclassified it. A more advanced algorithm could choose to give up earlier visiting some branches and use the extra time available to visit other nodes.
 

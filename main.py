@@ -5,7 +5,7 @@ from tests import TestAgent
 
 
 def run_tests():
-    TestAgent.run_test(4)
+    TestAgent.run_test(24)
 
 def get_agent(game):
     return QuartoAgent(game)
