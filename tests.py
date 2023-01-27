@@ -19,21 +19,22 @@ class TestAgent():
     def run_test(iterations):
         random.seed()
         print_ = True; save = False
+        
         print("Ciao")
-        #print("Testing QuartoAgent against random agent")
-        #TestAgent.test_vs_random(iterations, print_=print_, save=save)
+        print("Testing QuartoAgent against random agent")
+        TestAgent.test_vs_random(iterations, print_=print_, save=save)
         print("Testing QuartoAgent against itself")
         TestAgent.test_vs_itself(iterations, print_=print_, save=save)
-        """print("Testing QuartoAgent against blind agent")
+        print("Testing QuartoAgent against blind agent")
         TestAgent.test_vs_blind_agent(iterations, print_=print_, save=save)
         print("Testing QuartoAgent against no RL layer")
-        TestAgent.test_vs_blind_agent(iterations, print_=print_, save=save, random_reward=False)"""
+        TestAgent.test_vs_blind_agent(iterations, print_=print_, save=save, random_reward=False)
 
 
     def test_vs_blind_agent(iterations, skip_rl_layer=True, random_reward=True, print_=True, save = False):
         wins = 0; ties = 0
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = QuartoAgent(game, skip_rl_layer=skip_rl_layer, random_reward_function=random_reward)
             game.set_players((q1, q2))
@@ -44,7 +45,7 @@ class TestAgent():
             if (save): q2.save_cache()
         
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = QuartoAgent(game, skip_rl_layer=skip_rl_layer, random_reward_function=random_reward)
             game.set_players((q2, q1))
@@ -58,7 +59,7 @@ class TestAgent():
     def test_vs_itself(iterations, print_=True, save = False):
         wins = 0; ties = 0
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = QuartoAgent(game)
             game.set_players((q1, q2))
@@ -69,7 +70,7 @@ class TestAgent():
             if (save): q2.save_cache()
         
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = QuartoAgent(game)
             game.set_players((q1, q2))
@@ -83,7 +84,7 @@ class TestAgent():
     def test_vs_random(iterations, print_=True, save=False):
         wins = 0; ties = 0
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = RandomPlayer(game)
             game.set_players((q1, q2))
@@ -93,7 +94,7 @@ class TestAgent():
             if (winner==-1): ties+= 1
             if (save): q1.save_cache()
         for i in range(int(iterations/2)):
-            game = quarto.Quarto(no_print=True)
+            game = quarto.Quarto()
             q1 = QuartoAgent(game)
             q2 = RandomPlayer(game)
             game.set_players((q2, q1))

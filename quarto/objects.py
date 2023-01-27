@@ -38,15 +38,14 @@ class Quarto(object):
     MAX_PLAYERS = 2
     BOARD_SIDE = 4
 
-    def __init__(self, no_print = False) -> None:
+    def __init__(self) -> None:
         self.__players = ()
         self.reset()
-        self.no_print = no_print
 
     def reset(self):
         self._board = np.ones(
             shape=(self.BOARD_SIDE, self.BOARD_SIDE), dtype=int) * -1
-        self.binary_board = np.full(
+        self._binary_board = np.full(
             shape=(self.BOARD_SIDE, self.BOARD_SIDE, 4), fill_value=np.nan)
         self.__pieces = []
         self.__pieces.append(Piece(False, False, False, False))  # 0
@@ -67,18 +66,6 @@ class Quarto(object):
         self.__pieces.append(Piece(True, True, True, True))  # 15
         self._current_player = 0
         self.__selected_piece_index = -1
-
-    def setboard(self,board, p = None):
-        self._board = board 
-        for i in range(0,4):
-            for j in range(0,4):
-                if (board[i][j] >= 0):
-                    piece = self.__pieces[board[i][j]]
-                    self.binary_board[i,j][:] = piece.binary
-                else:
-                    self.binary_board[i,j][:] = [np.nan,np.nan,np.nan,np.nan]
-        if (p!=None):
-            self._current_player = p
 
     def set_players(self, players: tuple[Player, Player]):
         self.__players = players
@@ -104,9 +91,9 @@ class Quarto(object):
         '''
         if self.__placeable(x, y):
             self._board[y, x] = self.__selected_piece_index
-            self.binary_board[y,x][:] = self.__pieces[self.__selected_piece_index].binary
+            self._binary_board[y,
+                               x][:] = self.__pieces[self.__selected_piece_index].binary
             return True
-        #print(f"Nope {self._current_player} - {y} {x} - {self._board[y][x]}")
         return False
 
     def __placeable(self, x: int, y: int) -> bool:
@@ -116,8 +103,7 @@ class Quarto(object):
         '''
         Print the board
         '''
-        if (self.no_print):
-            return
+        return
         for row in self._board:
             print("\n -------------------")
             print("|", end="")
@@ -145,7 +131,7 @@ class Quarto(object):
         return copy.deepcopy(self.__selected_piece_index)
 
     def __check_horizontal(self) -> int:
-        hsum = np.sum(self.binary_board, axis=1)
+        hsum = np.sum(self._binary_board, axis=1)
 
         if self.BOARD_SIDE in hsum or 0 in hsum:
             return self._current_player
@@ -153,7 +139,7 @@ class Quarto(object):
             return -1
 
     def __check_vertical(self):
-        vsum = np.sum(self.binary_board, axis=0)
+        vsum = np.sum(self._binary_board, axis=0)
 
         if self.BOARD_SIDE in vsum or 0 in vsum:
             return self._current_player
@@ -161,8 +147,8 @@ class Quarto(object):
             return -1
 
     def __check_diagonal(self):
-        dsum1 = np.trace(self.binary_board, axis1=0, axis2=1)
-        dsum2 = np.trace(np.fliplr(self.binary_board), axis1=0, axis2=1)
+        dsum1 = np.trace(self._binary_board, axis1=0, axis2=1)
+        dsum2 = np.trace(np.fliplr(self._binary_board), axis1=0, axis2=1)
 
         if self.BOARD_SIDE in dsum1 or self.BOARD_SIDE in dsum2 or 0 in dsum1 or 0 in dsum2:
             return self._current_player

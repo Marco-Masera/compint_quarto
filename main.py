@@ -9,11 +9,16 @@ from quarto_agent_lib.train_reward_function import climb
 #Get agent playing quarto
 def get_agent(game):
     return QuartoAgent(game)
+
 #Run tests
 def run_tests():
-    TestAgent.run_test(2)
+    TestAgent.run_test(100)
+
+
+
 
 ### Methods to train the reward function
+##################################################################################
 def generate_dataset_for_training(deterministic = True, export_fn="dataset/raw/dataset_v0", depth=8, stop_at=None):
     if (deterministic):
         generate_dataset(export_fn=export_fn, depth=8)
@@ -24,6 +29,9 @@ def pre_process_dataset(inputs):
     PreProcessDataset.pre_process(inputs)
 def train_reward_function():
     climb()
+
+##################################################################################
+
 
 def main():
     run_tests()

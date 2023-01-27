@@ -43,9 +43,9 @@ class FixedRules():
 class QuartoRealAgent():
     #Agent static params
     def get_default_params():
-        return {"DEPTHS" :         [0]*4 + [4 for _ in range(5)] + [13]*7, #!!!
-                "MAX_NODES" :      [0]*4 + [5 for _ in range(5)] + [-1]*7, 
-                "MAX_EVALS" :      [0]*4 + [28 for _ in range(5)] + [-1]*7}
+        return {"DEPTHS" :         [0]*4 + [4 for _ in range(5)] + [13]*7, #4
+                "MAX_NODES" :      [0]*4 + [5 for _ in range(5)] + [-1]*7,  #5
+                "MAX_EVALS" :      [0]*4 + [45 for _ in range(5)] + [-1]*7}#45
 
     def __init__(self, params = None, skip_rl_layer = False, random_reward_function = False):
         self.cache = dict()
@@ -174,7 +174,8 @@ class QuartoRealAgent():
                             if (ext is None):
                                 ext = self.reward_extimator.get_reward([copied[0],copied[1], list( available_new - set( [copied[1],]))], size=size+1)
                                 if (self.random_reward_function==True and ext!=-180):
-                                    ext = random.randint(-15,5)
+                                    #DEBUG: Reward with random parameters almost always give positive values so let's force some negative ones
+                                    ext = random.randint(-15,5) 
                             avg_reward += ext 
                             n_values += 1
                             if (ext < best_extimate):
@@ -184,7 +185,6 @@ class QuartoRealAgent():
                                     skip = True
                                     hard_skip = True
                                     children = [(-180,copied)]
-                                    #self.add_to_perm_cache(copied, -1000)
                                     self.add_to_perm_cache(state, 1000)
                                     break
                                 children.append((ext,copied))
@@ -192,8 +192,8 @@ class QuartoRealAgent():
                                     skip = True
             
             if (len(children)==0):
-                result =  - (avg_reward / n_values)
-                valuations.append((result, index))
+                result =  (avg_reward / n_values) / (in_depth - depth + 1)
+                valuations.append((-result, index))
                 self.put_cache(state, result)
                 continue
             if (depth >= in_depth-1):
@@ -239,6 +239,3 @@ class QuartoRealAgent():
             states = self.prune(states, self.MAX_NODES[states_depth], states_depth)
         
         return self.solve_with_minmax(states, self.DEPTHS[states_depth], self.MAX_NODES[states_depth],self.MAX_EVALS[states_depth], states_depth, 0)
-        exit()
-    def __lt__(self, other):
-        return False

@@ -133,7 +133,7 @@ def load_data():
                 VALIDATION_STATES[size_].extend(states_2[size_])
             else:
                 VALIDATION_STATES[size_] = states_2[size_]
-        
+
 def climb():
     load_data()
     generation = 2
