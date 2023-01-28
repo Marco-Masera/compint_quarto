@@ -101,7 +101,7 @@ After many iterations of learning, the average squared error on the validation d
 
 Another useful metric is just counting binaries misclassifications over the validation dataset:
 * **Positive states**: 86.3% got right  -  13.7% misclassified.
-* **Positive states**: 91% right  -  9% misclassified.
+* **Negative states**: 91% right  -  9% misclassified.
 
 ### Reward for states with fewer pawns
 As said before, the first dataset generated contained only states with 8+ pawns already placed, and a good size only for states with 10+, as solving states with fewer pawns with MinMax was unfeasible.
