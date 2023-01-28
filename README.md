@@ -51,7 +51,7 @@ The script also divides the dataset into 2 partitions, used to train and to vali
 # Learning the heuristic reward function
 
 ## Training and validating
-Training the model make use of a tranining dataset, and the goal is to reduce the average squared differece between the extimated reward and the one provided by the dataset. After the learning phase, the function is then validated by computing the squared error on another partition of the original dataset that was not used during training.
+Training the model make use of a tranining dataset, and the goal is to reduce the average squared differece between the extimated reward and the one provided by the dataset. After the learning phase, the function is then validated by computing the squared error on another partition of the original dataset that was not used during training (validation dataset).
 
 ## Training algorithm
 This part was done very experimentally, with many different tries.
